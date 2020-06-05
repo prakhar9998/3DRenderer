@@ -1,7 +1,15 @@
 #include <SFML/Graphics.hpp>
 #include <math.h>
 
-void line(int x1, int y1, int x2, int y2, sf::Image& image, sf::Color color) {
+void setPixel(int i, int j, sf::Texture& texture, sf::Uint8* pixels, sf::Color color) {
+    size_t pixelOffset = (j * 800 + i) * 4;
+    pixels[pixelOffset] = color.r;
+    pixels[pixelOffset + 1] = color.g;
+    pixels[pixelOffset + 2] = color.b;
+    pixels[pixelOffset + 3] = color.a;
+}
+
+void line(int x1, int y1, int x2, int y2, sf::Texture& texture, sf::Uint8* pixels, sf::Color color) {
     // trying to implement naive first
     bool steep = false;
     if (std::abs(x1-x2) < std::abs(y1-y2)) {        // line is steep
@@ -18,39 +26,45 @@ void line(int x1, int y1, int x2, int y2, sf::Image& image, sf::Color color) {
     for (int x = x1; x <= x2; x++) {
         float t = (x - x1)/(float)(x2 - x1);
         int y = y1 * (1.-t) + y2*t;
-        if (steep) image.setPixel(y, x, color);
-        else image.setPixel(x, y, color);
+        if (steep) setPixel(y, x, texture, pixels, color);
+        else setPixel(x, y, texture, pixels, color);
     }
 }
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(800, 800), "3D Software Renderer");
 
-    sf::Image render;
-    render.create(800, 800);
-
     sf::Texture texture;
-    texture.loadFromImage(render);
-    sf::Sprite sprite;
-    sprite.setTexture(texture);
+    sf::Uint8 *pixels = new sf::Uint8[4 * 800 * 800];
+    texture.create(800, 800);
+    sf::Sprite sprite(texture);
+
+    int i = 45;
 
     while (window.isOpen()) {
+        std::fill(pixels, pixels + 4*800*800, 0);
+
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) window.close();
         }
-        
-        line(50, 50, 125, 125, render, sf::Color::Red);
-        line(130, 130, 756, 234, render, sf::Color::White);
 
-        texture.loadFromImage(render);
+        if (i > 800) i = 0;
+        i++;
+        line(125, 125, 50, 50, texture, pixels, sf::Color::Red);
+        line(130, 130, 756, 234, texture, pixels, sf::Color::White);
+        line(i % 800, i % 800, 400, 700, texture, pixels, sf::Color::Blue);
+
+
+        texture.update(pixels);
 
         window.clear();
         window.draw(sprite);
         window.display();
     }
 
-    render.saveToFile("render.tga");
+
+    delete [] pixels;
 
     return 0;
 }
