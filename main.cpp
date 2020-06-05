@@ -10,12 +10,11 @@ void setPixel(int i, int j, sf::Texture& texture, sf::Uint8* pixels, sf::Color c
 }
 
 void line(int x1, int y1, int x2, int y2, sf::Texture& texture, sf::Uint8* pixels, sf::Color color) {
-    // trying to implement naive first
     bool steep = false;
     if (std::abs(x1-x2) < std::abs(y1-y2)) {        // line is steep
-        steep = true;
         std::swap(x1, y1);
         std::swap(x2, y2);
+        steep = true;
     }
     
     if (x1 > x2) {
@@ -23,12 +22,33 @@ void line(int x1, int y1, int x2, int y2, sf::Texture& texture, sf::Uint8* pixel
         std::swap(y1, y2);
     }
 
-    for (int x = x1; x <= x2; x++) {
-        float t = (x - x1)/(float)(x2 - x1);
-        int y = y1 * (1.-t) + y2*t;
-        if (steep) setPixel(y, x, texture, pixels, color);
-        else setPixel(x, y, texture, pixels, color);
+    int dx = x2-x1;
+    int dy = y2-y1;
+    
+    int derror = std::abs(dy) * 2;
+    int slopeError = 0;
+    int y = y1;
+
+    if (steep) {
+        for (int x = x1; x <= x2; x++) {
+            setPixel(y, x, texture, pixels, color);
+            slopeError += derror;
+            if (slopeError > dx) {
+                y += (y2 > y1 ? 1: -1);
+                slopeError -= dx * 2;
+            }
+        }
+    } else {
+        for (int x = x1; x <= x2; x++) {
+            setPixel(x, y, texture, pixels, color);
+            slopeError += derror;
+            if (slopeError > dx) {
+                y += (y2 > y1 ? 1: -1);
+                slopeError -= dx * 2;
+            }
+        }
     }
+    
 }
 
 int main() {
