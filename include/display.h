@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "vector3d.h"
+#include "mesh.h"
 
 class DisplayBackend {
 private:
@@ -27,8 +28,10 @@ public:
     // TODO: refactor out part of this method to the engine class later
     void run();
 
-    // TODO: move this method into rasterizer class
+    // TODO: move these methods to renderer class.
+    // For now drawing wireframe to test wavefront model parsing.
     void drawLine(Vector2i p1, Vector2i p2, sf::Color color);
+    void drawMesh(Mesh* mesh);
 };
 
 #endif

@@ -24,13 +24,20 @@ void DisplayBackend::setPixel(int i, int j, sf::Color color) {
 }
 
 void DisplayBackend::run() {
+    Mesh *mesh = new Mesh();
+    if(!mesh->loadFile("teapot.obj")) {
+        std::cout << "Error loading mesh file.\n";
+    }
+
     while (m_Window.isOpen()) {
         sf::Event event;
         while (m_Window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) m_Window.close();
         }
 
-        update();
+        drawMesh(mesh);
+        // update();
+        m_Buffer.update(m_ColorBuffer);
 
         m_Window.clear();
         m_Window.draw(m_DrawBuffer);
@@ -39,9 +46,8 @@ void DisplayBackend::run() {
 }
 
 void DisplayBackend::update() {
-    drawLine(Vector2i(125, 125), Vector2i(50, 50), sf::Color::Red);
-    drawLine(Vector2i(50, 50), Vector2i(534, 236), sf::Color::White);
-    m_Buffer.update(m_ColorBuffer);
+    drawLine(Vector2i(0, 0), Vector2i(800, 800), sf::Color::Red);
+    drawLine(Vector2i(0, 800), Vector2i(800, 0), sf::Color::White);
 }
 
 void DisplayBackend::drawLine(Vector2i p1, Vector2i p2, sf::Color color) {
@@ -82,5 +88,28 @@ void DisplayBackend::drawLine(Vector2i p1, Vector2i p2, sf::Color color) {
                 slopeError -= dx * 2;
             }
         }
+    }
+}
+
+void DisplayBackend::drawMesh(Mesh* mesh) {
+    std::vector<Vector3i> vertices = mesh->getVertexIndices();
+
+    for (int i = 0; i < mesh->getNumFaces(); i++) {
+        Vector3f t1, t2, t3;
+        t1 = mesh->getVertex(vertices[i].x);
+        t2 = mesh->getVertex(vertices[i].y);
+        t3 = mesh->getVertex(vertices[i].z);
+
+        Vector2i p1, p2, p3;
+        p1.x = (t1.x + 5)*WINDOW_WIDTH/10;
+        p1.y = (t1.y + 5)*WINDOW_HEIGHT/10;
+        p2.x = (t2.x + 5)*WINDOW_WIDTH/10;
+        p2.y = (t2.y + 5)*WINDOW_HEIGHT/10;
+        p3.x = (t3.x + 5)*WINDOW_WIDTH/10;
+        p3.y = (t3.y + 5)*WINDOW_HEIGHT/10;
+
+        drawLine(p1, p2, sf::Color::White);
+        drawLine(p2, p3, sf::Color::White);
+        drawLine(p1, p3, sf::Color::White);
     }
 }
