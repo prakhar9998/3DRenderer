@@ -2,6 +2,7 @@
 #define DISPLAY_H
 
 #include <SFML/Graphics.hpp>
+#include "vector3d.h"
 
 class DisplayBackend {
 private:
@@ -27,7 +28,7 @@ public:
     void run();
 
     // TODO: move this method into rasterizer class
-    void drawLine(int x1, int y1, int x2, int y2, sf::Color color);
+    void drawLine(Vector2i p1, Vector2i p2, sf::Color color);
 };
 
 #endif

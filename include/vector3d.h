@@ -65,42 +65,61 @@ Vector<3, T> cross(Vector<3, T>& left, Vector<3, T>& right);
 ////////////////////////////////////////////////////////////////////////////////
 
 template <int N, typename T>
-Vector<N, T>::Vector()
-: x(0), y(0) {}
+inline Vector<N, T>::Vector() {}
+
+template <typename T>
+inline Vector<2, T>::Vector() {}
+
+template <typename T>
+inline Vector<2, T>::Vector(T X, T Y) {
+    x = X;
+    y = Y;
+}
+
+
+template <typename T>
+inline Vector<3, T>::Vector() {}
+
+template <typename T>
+inline Vector<3, T>::Vector(T X, T Y, T Z) {
+    x = X;
+    y = Y;
+    z = Z;
+}
 
 template <int N, typename T>
-Vector<N, T>::Vector(const T d[]) {
+inline Vector<N, T>::Vector(const T d[]) {
     for (int i = 0; i < N; i++) {
         data[i] = d[i];
     }
 }
 
 template <int N, typename T>
-T& Vector<N, T>::operator[](size_t index) {
+inline T& Vector<N, T>::operator[](size_t index) {
     assert(index >=0 && index < N);
     return data[index];
 }
 
 template <int N, typename T>
-const T& Vector<N, T>::operator[](size_t index) const {
+inline const T& Vector<N, T>::operator[](size_t index) const {
     assert(index >=0 && index < N);
     return data[index];
 }
 
 template <typename T>
-T& Vector<2, T>::operator[](size_t index) {
+inline T& Vector<2, T>::operator[](size_t index) {
     assert(index >=0 && index < 2);
-    return x ? index == 0 : y;
+    return index == 0 ? x : y;
 }
 
 template <typename T>
-const T& Vector<2, T>::operator[](size_t index) const {
+inline const T& Vector<2, T>::operator[](size_t index) const {
     assert(index >=0 && index < 2);
-    return x ? index == 0 : y;
+    return index == 0 ? x : y;
 }
 
 template <typename T>
-T& Vector<3, T>::operator[](size_t index) {
+inline T& Vector<3, T>::operator[](size_t index) {
     assert(index >=0 && index < 3);
     if (index == 0) return x;
     else if (index == 1) return y;
@@ -108,7 +127,7 @@ T& Vector<3, T>::operator[](size_t index) {
 }
 
 template <typename T>
-const T& Vector<3, T>::operator[](size_t index) const {
+inline const T& Vector<3, T>::operator[](size_t index) const {
     assert(index >=0 && index < 3);
     if (index == 0) return x;
     else if (index == 1) return y;
@@ -116,49 +135,56 @@ const T& Vector<3, T>::operator[](size_t index) const {
 }
 
 template<int N, typename T>
-Vector<N, T> operator +(const Vector<N, T>& left, const Vector<N, T>& right) {
-    T tmp[N];
-    for (int i = 0; i < N; i++) tmp[i] = lhs[i] + rhs[i];
-    return Vector<N, T>(tmp);
+inline Vector<N, T> operator +(const Vector<N, T>& left, const Vector<N, T>& right) {
+    Vector<N, T> tmp;
+    for (int i = 0; i < N; i++) tmp[i] = left[i] + right[i];
+    return tmp;
 }
 
 template <int N, typename T>
-Vector<N, T> operator -(const Vector<N, T>& left, const Vector<N, T>& right) {
-    T tmp[N];
-    for (int i = 0; i < N; i++) tmp[i] = lhs[i] - rhs[i];
-    return Vector<N, T>(tmp);
+inline Vector<N, T> operator -(const Vector<N, T>& left, const Vector<N, T>& right) {
+    Vector<N, T> tmp;
+    for (int i = 0; i < N; i++) tmp[i] = left[i] - right[i];
+    return tmp;
 }
 
 template <int N, typename T>
-Vector<N, T> operator *(const Vector<N, T>& left, const Vector<N, T>& right) {
-    T tmp[N];
-    for (int i = 0; i < N; i++) tmp[i] = lhs[i] * rhs[i];
-    return Vector<N, T>(tmp);
+inline Vector<N, T> operator *(const Vector<N, T>& left, const Vector<N, T>& right) {
+    Vector<N, T> tmp;
+    for (int i = 0; i < N; i++) tmp[i] = left[i] * right[i];
+    return tmp;
 }
 
 
 template <int N, typename T>
-std::ostream& operator <<(std::ostream& out, Vector<N, T>& vector) {
-    for (int i = 0; i < N; i++) {
-        out << "(" << vector[i] << " ";
+inline std::ostream& operator <<(std::ostream& out, Vector<N, T>& vector) {
+    out << "( " << vector[0];
+    for (int i = 1; i < N; i++) {
+        out << ",\t" << vector[i];
     }
+    out << ")";
     return out;
 }
 
 template <int N, typename T>
-T dot(const Vector<N, T>& left, const Vector<N, T>& right) {
-    T res = lhs[0] * rhs[0];
-    for (int i = 1; i < N; i++) res += lhs[i] * rhs[i];
+inline T dot(const Vector<N, T>& left, const Vector<N, T>& right) {
+    T res = left[0] * right[0];
+    for (int i = 1; i < N; i++) res += left[i] * right[i];
     return res;
 }
 
 template <typename T>
-Vector<3, T> cross(Vector<3, T>& left, Vector<3, T>& right) {
+inline Vector<3, T> cross(Vector<3, T>& left, Vector<3, T>& right) {
     return Vector<3, T>(
-        lhs[1] * rhs[2] - rhs[1] * lhs[2],
-        rhs[0] * lhs[2] - lhs[0] * rhs[2],
-        lhs[0] * rhs[1] - rhs[0] * lhs[1]
+        left[1] * right[2] - right[1] * left[2],
+        right[0] * left[2] - left[0] * right[2],
+        left[0] * right[1] - right[0] * left[1]
     );
 }
+
+typedef Vector<2, int> Vector2i;
+typedef Vector<2, float> Vector2f;
+typedef Vector<3, int> Vector3i;
+typedef Vector<3, float> Vector3f;
 
 #endif      // VECTOR3D_H

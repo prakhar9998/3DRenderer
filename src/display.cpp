@@ -39,46 +39,46 @@ void DisplayBackend::run() {
 }
 
 void DisplayBackend::update() {
-    drawLine(125, 125, 50, 50, sf::Color::Red);
-    drawLine(50, 50, 534, 236, sf::Color::White);
+    drawLine(Vector2i(125, 125), Vector2i(50, 50), sf::Color::Red);
+    drawLine(Vector2i(50, 50), Vector2i(534, 236), sf::Color::White);
     m_Buffer.update(m_ColorBuffer);
 }
 
-void DisplayBackend::drawLine(int x1, int y1, int x2, int y2, sf::Color color) {
+void DisplayBackend::drawLine(Vector2i p1, Vector2i p2, sf::Color color) {
     bool steep = false;
-    if (std::abs(x1-x2) < std::abs(y1-y2)) {        // line is steep
-        std::swap(x1, y1);
-        std::swap(x2, y2);
+    if (std::abs(p1.x-p2.x) < std::abs(p1.y-p2.y)) {        // line is steep
+        std::swap(p1.x, p1.y);
+        std::swap(p2.x, p2.y);
         steep = true;
     }
     
-    if (x1 > x2) {
-        std::swap(x1, x2);
-        std::swap(y1, y2);
+    if (p1.x > p2.x) {
+        std::swap(p1.x, p2.x);
+        std::swap(p1.y, p2.y);
     }
 
-    int dx = x2-x1;
-    int dy = y2-y1;
+    int dx = p2.x-p1.x;
+    int dy = p2.y-p1.y;
     
     int derror = std::abs(dy) * 2;
     int slopeError = 0;
-    int y = y1;
+    int y = p1.y;
 
     if (steep) {
-        for (int x = x1; x <= x2; x++) {
+        for (int x = p1.x; x <= p2.x; x++) {
             setPixel(y, x, color);
             slopeError += derror;
             if (slopeError > dx) {
-                y += (y2 > y1 ? 1: -1);
+                y += (p2.y > p1.y ? 1: -1);
                 slopeError -= dx * 2;
             }
         }
     } else {
-        for (int x = x1; x <= x2; x++) {
+        for (int x = p1.x; x <= p2.x; x++) {
             setPixel(x, y, color);
             slopeError += derror;
             if (slopeError > dx) {
-                y += (y2 > y1 ? 1: -1);
+                y += (p2.y > p1.y ? 1: -1);
                 slopeError -= dx * 2;
             }
         }
