@@ -1,3 +1,6 @@
+#ifndef DISPLAY_H
+#define DISPLAY_H
+
 #include <SFML/Graphics.hpp>
 
 class DisplayBackend {
@@ -26,3 +29,5 @@ public:
     // TODO: move this method into rasterizer class
     void drawLine(int x1, int y1, int x2, int y2, sf::Color color);
 };
+
+#endif
