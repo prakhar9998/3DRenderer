@@ -16,7 +16,7 @@ void DisplayBackend::createWindow() {
 }
 
 void DisplayBackend::setPixel(int i, int j, sf::Color color) {
-    size_t pixelOffset = (j * WINDOW_WIDTH + i) * 4;
+    size_t pixelOffset = ((800 - j) * WINDOW_WIDTH + i) * 4;
     m_ColorBuffer[pixelOffset] = color.r;
     m_ColorBuffer[pixelOffset + 1] = color.g;
     m_ColorBuffer[pixelOffset + 2] = color.b;
@@ -109,7 +109,7 @@ void DisplayBackend::drawMesh(Mesh* mesh) {
         p3.y = (t3.y + 5)*WINDOW_HEIGHT/10;
 
         drawLine(p1, p2, sf::Color::White);
-        drawLine(p2, p3, sf::Color::White);
-        drawLine(p1, p3, sf::Color::White);
+        drawLine(p2, p3, sf::Color::Blue);
+        drawLine(p1, p3, sf::Color::Red);
     }
 }

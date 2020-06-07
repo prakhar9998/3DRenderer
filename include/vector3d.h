@@ -50,6 +50,13 @@ Vector<N, T> operator -(const Vector<N, T>& left, const Vector<N, T>& right);
 template <int N, typename T>
 Vector<N, T> operator *(const Vector<N, T>& left, const Vector<N, T>& right);
 
+// Vector multiplied by scalar
+template <int N, typename T>
+Vector<N, T> operator *(T lhs, const Vector<N, T>& rhs);
+
+template <int N, typename T>
+Vector<N, T> operator *(const Vector<N, T>& lhs, T rhs);
+
 // output the vector values, for debugging purposes
 template <int N, typename T>
 std::ostream& operator <<(std::ostream& out, Vector<N, T>& vector);
@@ -155,6 +162,20 @@ inline Vector<N, T> operator *(const Vector<N, T>& left, const Vector<N, T>& rig
     return tmp;
 }
 
+template<int N, typename T>
+inline Vector<N, T> operator *(const Vector<N, T>& lhs, T rhs) {
+    Vector<N, T> tmp;
+    for (int i = 0; i < N; i++) tmp[i] = lhs[i] * rhs;
+    return tmp;
+}
+
+template<int N, typename T>
+inline Vector<N, T> operator *(T lhs, const Vector<N, T>& rhs) {
+    Vector<N, T> tmp;
+    for (int i = 0; i < N; i++) tmp[i] = lhs * rhs[i];
+    return tmp;
+}
+
 
 template <int N, typename T>
 inline std::ostream& operator <<(std::ostream& out, Vector<N, T>& vector) {
@@ -186,5 +207,7 @@ typedef Vector<2, int> Vector2i;
 typedef Vector<2, float> Vector2f;
 typedef Vector<3, int> Vector3i;
 typedef Vector<3, float> Vector3f;
+typedef Vector<4, int> Vector4i;
+typedef Vector<4, float> Vector4f;
 
 #endif      // VECTOR3D_H

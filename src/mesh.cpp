@@ -30,11 +30,13 @@ bool Mesh::loadFile(std::string path) {
             m_Textures.push_back(Vector3f(u, v, 0));
         } else if (data == "vn") {
             float i, j, k;
-
+            iss >> i >> j >> k;
+            m_Normals.push_back(Vector3f(i, j, k));
         } else if (data == "f") {
 
             int x, y, z;
             iss >> x >> y >> z;
+            x--; y--; z--;
             m_VertexIndices.push_back(Vector3i(x, y, z));
             // char slash;
             // int vi[3], vti[3], vni[3];

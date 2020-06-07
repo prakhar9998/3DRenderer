@@ -16,7 +16,7 @@ private:
     std::vector<Vector3f> m_Normals;
 
     // indices which form a face
-    std::vector<Vector3i> m_VertexIndices;        
+    std::vector<Vector3i> m_VertexIndices;
     std::vector<Vector3i> m_TextureIndices;
     std::vector<Vector3i> m_NormalIndices;
 
