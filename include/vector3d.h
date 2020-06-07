@@ -40,15 +40,23 @@ public:
     const T& operator[] (size_t index) const;
 };
 
+template <typename T>
+class Vector<4, T> {
+public:
+    T x, y, z, w;
+
+    Vector();
+    Vector(T x, T y, T z, T w);
+
+    T& operator[] (size_t index);
+    const T& operator[] (size_t index) const;
+};
+
 template<int N, typename T>
 Vector<N, T> operator +(const Vector<N, T>& left, const Vector<N, T>& right);
 
 template <int N, typename T>
 Vector<N, T> operator -(const Vector<N, T>& left, const Vector<N, T>& right);
-
-// Element-wise product of two vectors
-template <int N, typename T>
-Vector<N, T> operator *(const Vector<N, T>& left, const Vector<N, T>& right);
 
 // Vector multiplied by scalar
 template <int N, typename T>
@@ -56,6 +64,9 @@ Vector<N, T> operator *(T lhs, const Vector<N, T>& rhs);
 
 template <int N, typename T>
 Vector<N, T> operator *(const Vector<N, T>& lhs, T rhs);
+
+template <int N, typename T>
+Vector<N, T> operator/(const Vector<N, T>& lhs, const T& rhs);
 
 // output the vector values, for debugging purposes
 template <int N, typename T>
@@ -70,115 +81,143 @@ template <typename T>
 Vector<3, T> cross(Vector<3, T>& left, Vector<3, T>& right);
 
 ////////////////////////////////////////////////////////////////////////////////
-
+// DECLARATIONS
+///////////////////////////////////////////////////////////////////////////////
 template <int N, typename T>
-inline Vector<N, T>::Vector() {}
+Vector<N, T>::Vector() {}
 
 template <typename T>
-inline Vector<2, T>::Vector() {}
+Vector<2, T>::Vector() {}
 
 template <typename T>
-inline Vector<2, T>::Vector(T X, T Y) {
+Vector<3, T>::Vector() {}
+
+template <typename T>
+Vector<4, T>::Vector() {}
+
+template <typename T>
+Vector<2, T>::Vector(T X, T Y) {
     x = X;
     y = Y;
 }
 
-
 template <typename T>
-inline Vector<3, T>::Vector() {}
-
-template <typename T>
-inline Vector<3, T>::Vector(T X, T Y, T Z) {
+Vector<3, T>::Vector(T X, T Y, T Z) {
     x = X;
     y = Y;
     z = Z;
 }
 
+template <typename T>
+Vector<4, T>::Vector(T X, T Y, T Z, T W) {
+    x = X;
+    y = Y;
+    z = Z;
+    w = W;
+}
+
 template <int N, typename T>
-inline Vector<N, T>::Vector(const T d[]) {
+Vector<N, T>::Vector(const T d[]) {
     for (int i = 0; i < N; i++) {
         data[i] = d[i];
     }
 }
 
 template <int N, typename T>
-inline T& Vector<N, T>::operator[](size_t index) {
-    assert(index >=0 && index < N);
+T& Vector<N, T>::operator[](size_t index) {
+    assert(index >= 0 && index < N);
     return data[index];
 }
 
 template <int N, typename T>
-inline const T& Vector<N, T>::operator[](size_t index) const {
-    assert(index >=0 && index < N);
+const T& Vector<N, T>::operator[](size_t index) const {
+    assert(index >= 0 && index < N);
     return data[index];
 }
 
 template <typename T>
-inline T& Vector<2, T>::operator[](size_t index) {
-    assert(index >=0 && index < 2);
+T& Vector<2, T>::operator[](size_t index) {
+    assert(index >= 0 && index < 2);
     return index == 0 ? x : y;
 }
 
 template <typename T>
-inline const T& Vector<2, T>::operator[](size_t index) const {
-    assert(index >=0 && index < 2);
+const T& Vector<2, T>::operator[](size_t index) const {
+    assert(index >= 0 && index < 2);
     return index == 0 ? x : y;
 }
 
 template <typename T>
-inline T& Vector<3, T>::operator[](size_t index) {
-    assert(index >=0 && index < 3);
+T& Vector<3, T>::operator[](size_t index) {
+    assert(index >= 0 && index < 3);
     if (index == 0) return x;
     else if (index == 1) return y;
     else return z;
 }
 
 template <typename T>
-inline const T& Vector<3, T>::operator[](size_t index) const {
-    assert(index >=0 && index < 3);
+const T& Vector<3, T>::operator[](size_t index) const {
+    assert(index >= 0 && index < 3);
     if (index == 0) return x;
     else if (index == 1) return y;
     else return z;
+}
+
+template <typename T>
+T& Vector<4, T>::operator[](size_t index) {
+    assert(index >= 0 && index < 4);
+    if (index == 0) return x;
+    else if (index == 1) return y;
+    else if (index == 2) return z;
+    else return w;
+}
+
+template <typename T>
+const T& Vector<4, T>::operator[](size_t index) const {
+    assert(index >= 0 && index < 4);
+    if (index == 0) return x;
+    else if (index == 1) return y;
+    else if (index == 2) return z;
+    else return w;
 }
 
 template<int N, typename T>
-inline Vector<N, T> operator +(const Vector<N, T>& left, const Vector<N, T>& right) {
+Vector<N, T> operator +(const Vector<N, T>& left, const Vector<N, T>& right) {
     Vector<N, T> tmp;
     for (int i = 0; i < N; i++) tmp[i] = left[i] + right[i];
     return tmp;
 }
 
 template <int N, typename T>
-inline Vector<N, T> operator -(const Vector<N, T>& left, const Vector<N, T>& right) {
+Vector<N, T> operator -(const Vector<N, T>& left, const Vector<N, T>& right) {
     Vector<N, T> tmp;
     for (int i = 0; i < N; i++) tmp[i] = left[i] - right[i];
     return tmp;
 }
 
-template <int N, typename T>
-inline Vector<N, T> operator *(const Vector<N, T>& left, const Vector<N, T>& right) {
-    Vector<N, T> tmp;
-    for (int i = 0; i < N; i++) tmp[i] = left[i] * right[i];
-    return tmp;
-}
-
 template<int N, typename T>
-inline Vector<N, T> operator *(const Vector<N, T>& lhs, T rhs) {
+Vector<N, T> operator *(const Vector<N, T>& lhs, T rhs) {
     Vector<N, T> tmp;
     for (int i = 0; i < N; i++) tmp[i] = lhs[i] * rhs;
     return tmp;
 }
 
 template<int N, typename T>
-inline Vector<N, T> operator *(T lhs, const Vector<N, T>& rhs) {
+Vector<N, T> operator *(T lhs, const Vector<N, T>& rhs) {
     Vector<N, T> tmp;
     for (int i = 0; i < N; i++) tmp[i] = lhs * rhs[i];
     return tmp;
 }
 
+template <int N, typename T>
+Vector<N, T> operator/(const Vector<N, T>& lhs, const T& rhs) {
+    Vector<N, T> tmp;
+    for (int i = 0; i < N; i++) tmp[i] = lhs[i]/rhs;
+    return tmp;
+}
 
 template <int N, typename T>
-inline std::ostream& operator <<(std::ostream& out, Vector<N, T>& vector) {
+std::ostream& operator <<(std::ostream& out, Vector<N, T>& vector) {
     out << "( " << vector[0];
     for (int i = 1; i < N; i++) {
         out << ",\t" << vector[i];
@@ -188,14 +227,14 @@ inline std::ostream& operator <<(std::ostream& out, Vector<N, T>& vector) {
 }
 
 template <int N, typename T>
-inline T dot(const Vector<N, T>& left, const Vector<N, T>& right) {
+T dot(const Vector<N, T>& left, const Vector<N, T>& right) {
     T res = left[0] * right[0];
     for (int i = 1; i < N; i++) res += left[i] * right[i];
     return res;
 }
 
 template <typename T>
-inline Vector<3, T> cross(Vector<3, T>& left, Vector<3, T>& right) {
+Vector<3, T> cross(Vector<3, T>& left, Vector<3, T>& right) {
     return Vector<3, T>(
         left[1] * right[2] - right[1] * left[2],
         right[0] * left[2] - left[0] * right[2],
