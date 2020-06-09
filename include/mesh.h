@@ -27,6 +27,7 @@ public:
     int getNumVertices();
     int getNumFaces();
     bool loadFile(std::string path);
+    void normalizeMesh();
     Vector3f getVertex(int index);
     Vector3f getTexture(int index);
     Vector3f getNormal(int index);

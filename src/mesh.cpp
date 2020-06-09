@@ -2,12 +2,36 @@
 
 #include <fstream>
 #include <sstream>
+#include <limits>
+#include <math.h>
 
 Mesh::Mesh() : m_NumVertices(0), m_NumFaces(0) {};
 Mesh::~Mesh() {}
 
 int Mesh::getNumFaces() { return m_NumFaces; }
 int Mesh::getNumVertices() { return m_NumVertices; }
+
+void Mesh::normalizeMesh() {
+    // bring down to -1 and +1 dimensions
+    Vector3f maxPosition = m_Vertices[0];
+    Vector3f minPosition = m_Vertices[0];
+
+    for (int i = 0; i < m_Vertices.size(); i++) {
+        maxPosition.x = std::max(maxPosition.x, m_Vertices[i].x);
+        minPosition.x = std::min(minPosition.x, m_Vertices[i].x);
+        maxPosition.y = std::max(maxPosition.y, m_Vertices[i].y);
+        minPosition.y = std::min(minPosition.y, m_Vertices[i].y);
+        maxPosition.z = std::max(maxPosition.z, m_Vertices[i].z);
+        minPosition.z = std::min(minPosition.z, m_Vertices[i].z);
+    }
+    float maxCoord = std::max(std::max(maxPosition.x, maxPosition.y), maxPosition.z);
+    float minCoord = std::min(std::min(minPosition.x, minPosition.y), minPosition.z);
+    minCoord = std::abs(minCoord);
+    float scale = std::max(minCoord, maxCoord);
+    for (int i = 0; i < m_Vertices.size(); i++) {
+        m_Vertices[i] = m_Vertices[i]/scale;
+    }
+}
 
 bool Mesh::loadFile(std::string path) {
     std::cout << "loading " << path << std::endl;
@@ -19,6 +43,7 @@ bool Mesh::loadFile(std::string path) {
         std::istringstream iss(curline);
         std::string data;
         iss >> data;        // check if vertex data, texture data and so on
+
         if (data == "v") {
             float x, y, z;
             iss >> x >> y >> z;
@@ -33,7 +58,7 @@ bool Mesh::loadFile(std::string path) {
             iss >> i >> j >> k;
             m_Normals.push_back(Vector3f(i, j, k));
         } else if (data == "f") {
-
+            char slash;
             int x, y, z;
             iss >> x >> y >> z;
             x--; y--; z--;
