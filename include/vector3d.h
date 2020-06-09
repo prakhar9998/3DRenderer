@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <math.h>
 
 template <int N, typename T>
 class Vector {
@@ -78,7 +79,7 @@ T dot(const Vector<N, T>& left, const Vector<N, T>& right);
 
 // Cross product of two Vector3T vectors
 template <typename T>
-Vector<3, T> cross(Vector<3, T>& left, Vector<3, T>& right);
+Vector<3, T> cross(Vector<3, T> left, Vector<3, T> right);
 
 ////////////////////////////////////////////////////////////////////////////////
 // DECLARATIONS
@@ -234,12 +235,22 @@ T dot(const Vector<N, T>& left, const Vector<N, T>& right) {
 }
 
 template <typename T>
-Vector<3, T> cross(Vector<3, T>& left, Vector<3, T>& right) {
+Vector<3, T> cross(Vector<3, T> left, Vector<3, T> right) {
     return Vector<3, T>(
         left[1] * right[2] - right[1] * left[2],
         right[0] * left[2] - left[0] * right[2],
         left[0] * right[1] - right[0] * left[1]
     );
+}
+
+template <typename T>
+Vector<3, T> normalize(const Vector<3, T>& vec) {
+    return Vector<3, T>(vec/std::sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z));
+}
+
+template <typename T>
+T norm(const Vector<3, T>& vec) {
+    return std::sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
 }
 
 typedef Vector<2, int> Vector2i;

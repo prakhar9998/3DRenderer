@@ -31,7 +31,7 @@ public:
     // TODO: move these methods to renderer class.
     // For now drawing wireframe to test wavefront model parsing.
     void drawLine(Vector2i p1, Vector2i p2, sf::Color color);
-    void drawMesh(Mesh* mesh);
+    void drawMesh(Mesh* mesh, float time);
 };
 
 #endif

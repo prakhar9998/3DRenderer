@@ -1,4 +1,7 @@
 #include "display.h"
+#include "camera.h"
+#include <math.h>
+#include <algorithm>
 
 DisplayBackend::DisplayBackend()
 : m_ColorBuffer(new sf::Uint8[WINDOW_WIDTH * WINDOW_HEIGHT * 4]) {
@@ -29,14 +32,18 @@ void DisplayBackend::run() {
         std::cout << "Error loading mesh file.\n";
     }
 
+    sf::Clock clock;
+
     while (m_Window.isOpen()) {
         sf::Event event;
         while (m_Window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) m_Window.close();
         }
 
-        drawMesh(mesh);
-        // update();
+        float time = clock.getElapsedTime().asSeconds();
+
+        update();
+        drawMesh(mesh, time);
         m_Buffer.update(m_ColorBuffer);
 
         m_Window.clear();
@@ -46,11 +53,16 @@ void DisplayBackend::run() {
 }
 
 void DisplayBackend::update() {
-    drawLine(Vector2i(0, 0), Vector2i(800, 800), sf::Color::Red);
-    drawLine(Vector2i(0, 800), Vector2i(800, 0), sf::Color::White);
+    std::fill(m_ColorBuffer, m_ColorBuffer + 4*800*800, 0);
 }
 
 void DisplayBackend::drawLine(Vector2i p1, Vector2i p2, sf::Color color) {
+
+    if (p1.x < 0 || p1.y < 0) return;
+    if (p2.x < 0 || p2.y < 0) return;
+    if (p1.x > 800 || p1.y > 800) return;
+    if (p2.x > 800 || p2.y > 800) return;
+
     bool steep = false;
     if (std::abs(p1.x-p2.x) < std::abs(p1.y-p2.y)) {        // line is steep
         std::swap(p1.x, p1.y);
@@ -91,25 +103,41 @@ void DisplayBackend::drawLine(Vector2i p1, Vector2i p2, sf::Color color) {
     }
 }
 
-void DisplayBackend::drawMesh(Mesh* mesh) {
+void DisplayBackend::drawMesh(Mesh* mesh, float time) {
+    mesh->normalizeMesh();
     std::vector<Vector3i> vertices = mesh->getVertexIndices();
-
+    
     for (int i = 0; i < mesh->getNumFaces(); i++) {
         Vector3f t1, t2, t3;
         t1 = mesh->getVertex(vertices[i].x);
         t2 = mesh->getVertex(vertices[i].y);
         t3 = mesh->getVertex(vertices[i].z);
 
-        Vector2i p1, p2, p3;
-        p1.x = (t1.x + 5)*WINDOW_WIDTH/10;
-        p1.y = (t1.y + 5)*WINDOW_HEIGHT/10;
-        p2.x = (t2.x + 5)*WINDOW_WIDTH/10;
-        p2.y = (t2.y + 5)*WINDOW_HEIGHT/10;
-        p3.x = (t3.x + 5)*WINDOW_WIDTH/10;
-        p3.y = (t3.y + 5)*WINDOW_HEIGHT/10;
+        Vector4f v1(t1.x, t1.y, t1.z, 1);
+        Vector4f v2(t2.x, t2.y, t2.z, 1);
+        Vector4f v3(t3.x, t3.y, t3.z, 1);
+
+        float camX = sin(time) * 10.f;
+        float camZ = cos(time) * 10.f;
+
+        Vector3f eye(camX, 0.f, camZ);
+        Vector3f at(0.0f, 0.0f, 0.0f);
+        Vector3f up(0.0f, 1.0f, 0.0f);
+
+        Matrix4f ModelView = Camera::lookAt(eye, at, up);
+        // Matrix4f Projection = Camera::Projection(-1./norm(eye-at));
+        Matrix4f Viewport = Camera::Viewport(WINDOW_WIDTH/8, WINDOW_HEIGHT/8, WINDOW_WIDTH*3/4, WINDOW_HEIGHT*3/4);
+        v1 = (Viewport * ModelView * v1);
+        v2 = (Viewport * ModelView * v2);
+        v3 = (Viewport * ModelView * v3);
+
+        Vector2i p1(v1.x, v1.y);
+        Vector2i p2(v2.x, v2.y);
+        Vector2i p3(v3.x, v3.y);
+
 
         drawLine(p1, p2, sf::Color::White);
-        drawLine(p2, p3, sf::Color::Blue);
-        drawLine(p1, p3, sf::Color::Red);
+        drawLine(p2, p3, sf::Color::White);
+        drawLine(p1, p3, sf::Color::White);
     }
 }
