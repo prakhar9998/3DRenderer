@@ -7,8 +7,8 @@
 
 class DisplayBackend {
 private:
-    const static int WINDOW_WIDTH = 800;
-    const static int WINDOW_HEIGHT = 800;
+    const static int WINDOW_WIDTH = 1280;
+    const static int WINDOW_HEIGHT = 720;
 
     sf::RenderWindow m_Window;
     sf::Texture m_Buffer;

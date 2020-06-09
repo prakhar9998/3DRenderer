@@ -19,7 +19,7 @@ void DisplayBackend::createWindow() {
 }
 
 void DisplayBackend::setPixel(int i, int j, sf::Color color) {
-    size_t pixelOffset = ((800 - j) * WINDOW_WIDTH + i) * 4;
+    size_t pixelOffset = ((WINDOW_HEIGHT - j) * WINDOW_WIDTH + i) * 4;
     m_ColorBuffer[pixelOffset] = color.r;
     m_ColorBuffer[pixelOffset + 1] = color.g;
     m_ColorBuffer[pixelOffset + 2] = color.b;
@@ -30,9 +30,12 @@ void DisplayBackend::run() {
     Mesh *mesh = new Mesh();
     if(!mesh->loadFile("teapot.obj")) {
         std::cout << "Error loading mesh file.\n";
-    }
+    }   
+    mesh->normalizeMesh();
 
     sf::Clock clock;
+    sf::Clock rot;
+    float lastTime = 0;
 
     while (m_Window.isOpen()) {
         sf::Event event;
@@ -40,10 +43,13 @@ void DisplayBackend::run() {
             if (event.type == sf::Event::Closed) m_Window.close();
         }
 
-        float time = clock.getElapsedTime().asSeconds();
+        sf::Time time = clock.getElapsedTime();
+        std::cout << 1.f / time.asSeconds() << std::endl;
+
+        clock.restart().asSeconds();
 
         update();
-        drawMesh(mesh, time);
+        drawMesh(mesh, rot.getElapsedTime().asSeconds());
         m_Buffer.update(m_ColorBuffer);
 
         m_Window.clear();
@@ -53,15 +59,14 @@ void DisplayBackend::run() {
 }
 
 void DisplayBackend::update() {
-    std::fill(m_ColorBuffer, m_ColorBuffer + 4*800*800, 0);
+    std::fill(m_ColorBuffer, m_ColorBuffer + 4*WINDOW_WIDTH*WINDOW_HEIGHT, 0);
 }
 
 void DisplayBackend::drawLine(Vector2i p1, Vector2i p2, sf::Color color) {
-
     if (p1.x < 0 || p1.y < 0) return;
     if (p2.x < 0 || p2.y < 0) return;
-    if (p1.x > 800 || p1.y > 800) return;
-    if (p2.x > 800 || p2.y > 800) return;
+    if (p1.x > WINDOW_WIDTH || p1.y > WINDOW_HEIGHT) return;
+    if (p2.x > WINDOW_WIDTH || p2.y > WINDOW_HEIGHT) return;
 
     bool steep = false;
     if (std::abs(p1.x-p2.x) < std::abs(p1.y-p2.y)) {        // line is steep
@@ -104,7 +109,6 @@ void DisplayBackend::drawLine(Vector2i p1, Vector2i p2, sf::Color color) {
 }
 
 void DisplayBackend::drawMesh(Mesh* mesh, float time) {
-    mesh->normalizeMesh();
     std::vector<Vector3i> vertices = mesh->getVertexIndices();
     
     for (int i = 0; i < mesh->getNumFaces(); i++) {
@@ -117,19 +121,23 @@ void DisplayBackend::drawMesh(Mesh* mesh, float time) {
         Vector4f v2(t2.x, t2.y, t2.z, 1);
         Vector4f v3(t3.x, t3.y, t3.z, 1);
 
-        float camX = sin(time) * 10.f;
-        float camZ = cos(time) * 10.f;
+        float camX = sin(time) * 1.f;
+        float camZ = cos(time) * 1.f;
 
         Vector3f eye(camX, 0.f, camZ);
         Vector3f at(0.0f, 0.0f, 0.0f);
         Vector3f up(0.0f, 1.0f, 0.0f);
 
         Matrix4f ModelView = Camera::lookAt(eye, at, up);
-        // Matrix4f Projection = Camera::Projection(-1./norm(eye-at));
+        Matrix4f Projection = Camera::Projection(-1./norm(at-eye));
         Matrix4f Viewport = Camera::Viewport(WINDOW_WIDTH/8, WINDOW_HEIGHT/8, WINDOW_WIDTH*3/4, WINDOW_HEIGHT*3/4);
-        v1 = (Viewport * ModelView * v1);
-        v2 = (Viewport * ModelView * v2);
-        v3 = (Viewport * ModelView * v3);
+        v1 = (Viewport * Projection * ModelView * v1);
+        v2 = (Viewport * Projection * ModelView * v2);
+        v3 = (Viewport * Projection * ModelView * v3);
+
+        v1 = v1 / v1.z;
+        v2 = v2 / v2.z;
+        v3 = v3 / v3.z;
 
         Vector2i p1(v1.x, v1.y);
         Vector2i p2(v2.x, v2.y);
