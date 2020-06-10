@@ -13,8 +13,8 @@ private:
     sf::Uint8* m_PixelBuffer;
 
 public:
-    const static int WINDOW_WIDTH = 1280;
-    const static int WINDOW_HEIGHT = 720;
+    const static int WINDOW_WIDTH = 800;
+    const static int WINDOW_HEIGHT = 800;
 
 public:
     DisplayBackend();

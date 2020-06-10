@@ -66,7 +66,7 @@ void Rasterizer::drawLine(Vector2i p1, Vector2i p2, sf::Color color) {
     }
 }
 
-void Rasterizer::drawMesh(Mesh* mesh) {
+void Rasterizer::drawMesh(Mesh* mesh, float rot) {
     std::vector<Vector3i> vertices = mesh->getVertexIndices();
     
     for (int i = 0; i < mesh->getNumFaces(); i++) {
@@ -79,8 +79,8 @@ void Rasterizer::drawMesh(Mesh* mesh) {
         Vector4f v2(t2.x, t2.y, t2.z, 1);
         Vector4f v3(t3.x, t3.y, t3.z, 1);
 
-        float camX = sin(20) * 1.f;
-        float camZ = cos(20) * 1.f;
+        float camX = sin(rot) * 0.75f;
+        float camZ = cos(rot) * 0.75f;
 
         Vector3f eye(camX, 0.f, camZ);
         Vector3f at(0.0f, 0.0f, 0.0f);

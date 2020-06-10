@@ -14,7 +14,7 @@ public:
     ~Rasterizer();
     void setPixel(int x, int y, sf::Color color);
     void drawLine(Vector2i p1, Vector2i p2, sf::Color color);
-    void drawMesh(Mesh* mesh);
+    void drawMesh(Mesh* mesh, float rot);
     sf::Uint8* getBuffer();
 };
 

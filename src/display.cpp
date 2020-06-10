@@ -45,6 +45,7 @@ void DisplayBackend::run() {
 }
 
 void DisplayBackend::update() {
+    m_Window.clear();
     m_Window.draw(m_DrawBuffer);
     m_Window.display();
 }
@@ -52,7 +53,7 @@ void DisplayBackend::update() {
 void DisplayBackend::swapBuffers(sf::Uint8* pixelBuffer) {
     m_PixelBuffer = pixelBuffer;
     m_Buffer.update(m_PixelBuffer);
-    // std::fill(pixelBuffer, pixelBuffer + 4*WINDOW_WIDTH*WINDOW_HEIGHT, 0);
+    std::fill(pixelBuffer, pixelBuffer + 4*WINDOW_WIDTH*WINDOW_HEIGHT, 0);
 }
 
 sf::RenderWindow& DisplayBackend::getWindowInstance() {
