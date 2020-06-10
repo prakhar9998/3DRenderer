@@ -1,9 +1,7 @@
-#include "display.h"
+#include "engine.h"
 
 int main() {
-    DisplayBackend display;
-    display.createWindow();
-    display.run();
-
+    Engine engine;
+    engine.run();
     return 0;
 }

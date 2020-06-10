@@ -7,31 +7,25 @@
 
 class DisplayBackend {
 private:
-    const static int WINDOW_WIDTH = 1280;
-    const static int WINDOW_HEIGHT = 720;
-
     sf::RenderWindow m_Window;
     sf::Texture m_Buffer;
     sf::Sprite m_DrawBuffer;
-    sf::Uint8* m_ColorBuffer;
+    sf::Uint8* m_PixelBuffer;
 
-private:
-    void update();
+public:
+    const static int WINDOW_WIDTH = 1280;
+    const static int WINDOW_HEIGHT = 720;
 
 public:
     DisplayBackend();
     ~DisplayBackend();
 
+    void update();
     void createWindow();
-    void setPixel(int x, int y, sf::Color color);
-
-    // TODO: refactor out part of this method to the engine class later
+    void swapBuffers(sf::Uint8* pixelBuffer);
     void run();
-
-    // TODO: move these methods to renderer class.
-    // For now drawing wireframe to test wavefront model parsing.
-    void drawLine(Vector2i p1, Vector2i p2, sf::Color color);
-    void drawMesh(Mesh* mesh, float time);
+    
+    sf::RenderWindow& getWindowInstance();
 };
 
 #endif
