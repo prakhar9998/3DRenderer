@@ -1,13 +1,14 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+#include <SFML/Graphics.hpp>
+
 class Engine {
 private:
-    bool isWindowClosed;
-
+    bool m_IsWindowClosed;
+    float m_Rotation;
 private:
-    void processInput();
-    void render();
+    void processInput(const sf::Event& event);
 
 public:
     Engine();

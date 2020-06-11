@@ -1,19 +1,21 @@
-#include <SFML/Graphics.hpp>
 #include "engine.h"
 #include "display.h"
 #include "rasterizer.h"
 
 // TODO: the mesh will go into Scene class which will take care of all meshes being rendered.
 #include "mesh.h"
-Engine::Engine() : isWindowClosed(false) {}
+Engine::Engine() : m_IsWindowClosed(false), m_Rotation(0.f) {}
 Engine::~Engine() {}
 
-void Engine::processInput() {
-
-}
-
-void Engine::render() {
-
+void Engine::processInput(const sf::Event& event) {
+    if (event.type == sf::Event::Closed) {
+        m_IsWindowClosed = true;
+        return;
+    }
+    else if (event.type == sf::Event::KeyPressed) {
+        if (event.key.code == sf::Keyboard::Left) m_Rotation -= 0.05f;
+        else if (event.key.code == sf::Keyboard::Right) m_Rotation += 0.05f;
+    }
 }
 
 void Engine::run() {
@@ -29,26 +31,19 @@ void Engine::run() {
     }
 
     mesh->normalizeMesh();
-    float rot = 0;
 
     sf::Clock clock;
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) window.close();
-            if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::Left) {
-                    rot -= 0.05f;
-                } if (event.key.code == sf::Keyboard::Right) {
-                    rot += 0.05f;
-                }
-            }
+            processInput(event);
+            if (m_IsWindowClosed) window.close();
         }
         
         sf::Time time = clock.getElapsedTime();
         std::cout << 1.f / time.asSeconds() << std::endl;
         clock.restart().asSeconds();
-        rasterizer.drawMesh(mesh, rot);
+        rasterizer.drawMesh(mesh, m_Rotation);
         display.swapBuffers(rasterizer.getBuffer());
         display.update();
     }
