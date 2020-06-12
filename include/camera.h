@@ -4,46 +4,25 @@
 #include "matrix.h"
 
 class Camera {
+private:
+    Vector3f m_Position;
+    Vector3f m_Up;
+    Vector3f m_Target;
+
+    float m_FOV;
+    float m_Near;
+    float m_Far;
 public:
-    static Matrix4f lookAt(const Vector3f& eye, const Vector3f& at, const Vector3f& up);
-    static Matrix4f Viewport(int x, int y, int w, int h);
-    static Matrix4f Projection(float coeff);
+    Camera();
+    Camera(Vector3f position, Vector3f target);
+    ~Camera();
+    void setPosition(Vector3f position);
+    void setTarget(Vector3f target);
+    void setFOV(float fov);
+    void setNear(float near);
+    void setFar(float far);
+    Matrix4f getProjectionMatrix();
+    Matrix4f getViewMatrix();
 };
-
-Matrix4f Camera::lookAt(const Vector3f& eye, const Vector3f& at, const Vector3f& up) {
-    Vector3f n = normalize(eye - at);
-    Vector3f u = normalize(cross(up, n));
-    Vector3f v = normalize(cross(n, u));
-
-    Matrix4f c, T;
-    c = identity(c);
-    T = identity(T);
-    for (int i = 0; i < 3; i++) {
-        c[0][i] = u[i];
-        c[1][i] = v[i];
-        c[2][i] = n[i];
-        T[i][3] = -eye[i];
-    }
-    return c * T;
-}
-
-Matrix4f Camera::Viewport(int x, int y, int w, int h) {
-    Matrix4f vp;
-    vp = identity(vp);
-    vp[0][3] = x+w/2.f;
-    vp[1][3] = y+h/2.f;
-    vp[2][3] = 1.f;
-    vp[0][0] = w/2.f;
-    vp[1][1] = h/2.f;
-    vp[2][2] = 0;
-    return vp;
-}
-
-Matrix4f Camera::Projection(float coeff) {
-    Matrix4f p;
-    p = identity(p);
-    p[3][2] = coeff;
-    return p;
-}
 
 #endif      // CAMERA_H
