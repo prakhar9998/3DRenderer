@@ -18,9 +18,11 @@ private:
     std::string m_filepath;
 public:
     Model(std::string path);
+    Model();
     ~Model();
-    void transformModel(Vector3f& translate, Vector3f& scale, Vector3f& rotate);
+    void transformModel(Vector3f translate, Vector3f rotate, Vector3f scale);
     Matrix4f getModelMatrix();
+    Mesh* getMesh();
 };
 
 #endif      // MODEL_H

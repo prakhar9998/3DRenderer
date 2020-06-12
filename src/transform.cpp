@@ -24,7 +24,7 @@ Matrix4f Transform::scale(Vector3f factors) {
     return S;
 }
 
-Matrix4f rotate(Vector3f angles) {
+Matrix4f Transform::rotate(Vector3f angles) {
     // the given argument gives yaw, pitch and roll respectively
     // using euler transform, the generated matrix is returned
 

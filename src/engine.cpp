@@ -1,9 +1,8 @@
 #include "engine.h"
 #include "display.h"
-#include "rasterizer.h"
+#include "renderer.h"
+#include "scene.h"
 
-// TODO: the mesh will go into Scene class which will take care of all meshes being rendered.
-#include "mesh.h"
 Engine::Engine() : m_IsWindowClosed(false), m_Rotation(0.f) {}
 Engine::~Engine() {}
 
@@ -21,17 +20,25 @@ void Engine::processInput(const sf::Event& event) {
 void Engine::run() {
     DisplayBackend display;
     display.createWindow();
-    Rasterizer rasterizer;
     sf::RenderWindow& window = display.getWindowInstance();
 
-    // move this mesh stuff to scene manager class
-    Mesh* mesh = new Mesh;
-    if (!mesh->loadFile("cow.obj")) {
-        std::cout << "Error loading mesh file.\n";
-    }
+    // TODO: Move this into scene loader, which loads all the models and cams by itself.
 
-    mesh->normalizeMesh();
+    Model* teapot = new Model("teapot.obj");
+    teapot->transformModel(
+        Vector3f(0., 0., 0.),
+        Vector3f(0., 0., 0.),
+        Vector3f(0.25, 0.25, 0.25)
+    );
 
+    Camera* camera = new Camera(Vector3f(0., 0., -2.f), Vector3f(0., 0., 0.));
+
+    Scene scene;
+    scene.loadModelInScene(teapot);
+    scene.loadCameraInScene(camera);
+
+    Renderer renderer;
+    
     sf::Clock clock;
     while (window.isOpen()) {
         sf::Event event;
@@ -43,8 +50,11 @@ void Engine::run() {
         sf::Time time = clock.getElapsedTime();
         std::cout << 1.f / time.asSeconds() << std::endl;
         clock.restart().asSeconds();
-        rasterizer.drawMesh(mesh, m_Rotation);
-        display.swapBuffers(rasterizer.getBuffer());
+        renderer.renderScene(scene, m_Rotation);
+        display.swapBuffers(renderer.getPixelBuffer());
         display.update();
     }
+
+    delete camera;
+    delete teapot;
 }

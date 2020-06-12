@@ -5,17 +5,13 @@
 #include "mesh.h"
 #include "vector3d.h"
 
-class Rasterizer {
-private:
-    sf::Uint8* m_PixelBuffer;
-    
+class Rasterizer {    
 public:
     Rasterizer();
     ~Rasterizer();
-    void setPixel(int x, int y, sf::Color color);
-    void drawLine(Vector2i p1, Vector2i p2, sf::Color color);
-    void drawMesh(Mesh* mesh, float rot);
-    sf::Uint8* getBuffer();
+    static void setPixel(int x, int y, sf::Color color, sf::Uint8* pixelBuffer);
+    static void drawLine(Vector2i p1, Vector2i p2, sf::Color color, sf::Uint8* pixelBuffer);
+    // void drawMesh(Mesh* mesh, float rot);
 };
 
 #endif      // RASTERIZER_H
