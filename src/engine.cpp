@@ -26,9 +26,9 @@ void Engine::run() {
 
     Model* teapot = new Model("teapot.obj");
     teapot->transformModel(
+        Vector3f(0., 1., 0.),
         Vector3f(0., 0., 0.),
-        Vector3f(0., 0., 0.),
-        Vector3f(0.25, 0.25, 0.25)
+        Vector3f(1., 1., 1.)
     );
 
     Camera* camera = new Camera(Vector3f(0., 0., -2.f), Vector3f(0., 0., 0.));

@@ -28,12 +28,12 @@ public:
     int getNumFaces();
     bool loadFile(std::string path);
     void normalizeMesh();
-    Vector3f getVertex(int index);
-    Vector3f getTexture(int index);
-    Vector3f getNormal(int index);
-    std::vector<Vector3i> getVertexIndices();
-    std::vector<Vector3i> getTextureIndices();
-    std::vector<Vector3i> getNormalIndices();
+    Vector3f& getVertex(int index);
+    Vector3f& getTexture(int index);
+    Vector3f& getNormal(int index);
+    std::vector<Vector3i>& getVertexIndices();
+    std::vector<Vector3i>& getTextureIndices();
+    std::vector<Vector3i>& getNormalIndices();
 };
 
 #endif      // MESH_H

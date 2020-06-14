@@ -62,44 +62,15 @@ void Rasterizer::drawLine(Vector2i p1, Vector2i p2, sf::Color color, sf::Uint8 *
     }
 }
 
-// void Rasterizer::drawMesh(Mesh* mesh, float rot) {
-//     std::vector<Vector3i> vertices = mesh->getVertexIndices();
+Vector3f Rasterizer::barycentric(Vector3f p1, Vector3f p2, Vector3f p3) {
+    // compute barycentric coordinates of the triangle represented by the given vertices
+
     
-//     for (int i = 0; i < mesh->getNumFaces(); i++) {
-//         Vector3f t1, t2, t3;
-//         t1 = mesh->getVertex(vertices[i].x);
-//         t2 = mesh->getVertex(vertices[i].y);
-//         t3 = mesh->getVertex(vertices[i].z);
 
-//         Vector4f v1(t1.x, t1.y, t1.z, 1);
-//         Vector4f v2(t2.x, t2.y, t2.z, 1);
-//         Vector4f v3(t3.x, t3.y, t3.z, 1);
+}
 
-//         float camX = sin(rot) * 0.75f;
-//         float camZ = cos(rot) * 0.75f;
-
-//         Vector3f eye(camX, 0.f, camZ);
-//         Vector3f at(0.0f, 0.0f, 0.0f);
-//         Vector3f up(0.0f, 1.0f, 0.0f);
-
-//         Matrix4f ModelView = Camera::lookAt(eye, at, up);
-//         Matrix4f Projection = Camera::Projection(-1./norm(at-eye));
-//         Matrix4f Viewport = Camera::Viewport(DisplayBackend::WINDOW_WIDTH/8, DisplayBackend::WINDOW_HEIGHT/8, DisplayBackend::WINDOW_WIDTH*3/4, DisplayBackend::WINDOW_HEIGHT*3/4);
-//         v1 = (Viewport * Projection * ModelView * v1);
-//         v2 = (Viewport * Projection * ModelView * v2);
-//         v3 = (Viewport * Projection * ModelView * v3);
-
-//         v1 = v1 / v1.z;
-//         v2 = v2 / v2.z;
-//         v3 = v3 / v3.z;
-
-//         Vector2i p1(v1.x, v1.y);
-//         Vector2i p2(v2.x, v2.y);
-//         Vector2i p3(v3.x, v3.y);
-
-
-//         drawLine(p1, p2, sf::Color::White);
-//         drawLine(p2, p3, sf::Color::White);
-//         drawLine(p1, p3, sf::Color::White);
-//     }
-// }
+void Rasterizer::drawTriangle(Vector4f *pts, sf::Color color, sf::Uint8* pixelBuffer) {
+    
+    // calculate bounding box of the three coordinates.
+    
+}

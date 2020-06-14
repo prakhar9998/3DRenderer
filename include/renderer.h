@@ -12,7 +12,7 @@ private:
 public:
     Renderer();
     ~Renderer();
-    void renderScene(Scene scene, float cameraRotation);
+    void renderScene(Scene& scene, float cameraRotation);
     sf::Uint8* getPixelBuffer();
 };
 

@@ -14,19 +14,20 @@ Renderer::~Renderer() {
     delete [] m_PixelBuffer;
 }
 
-void Renderer::renderScene(Scene scene, float cameraRotation) {
+void Renderer::renderScene(Scene& scene, float cameraRotation) {
     m_Model = scene.getModel();
     m_Camera = scene.getCamera();
 
     // drawing mesh part
     
     Mesh* mesh = m_Model->getMesh();
-    std::vector<Vector3i> indices = mesh->getVertexIndices();
+    std::vector<Vector3i>& indices = mesh->getVertexIndices();
     // TODO: Add vector4f coords in mesh.
     Vector3f t1, t2, t3;
     Vector4f v1, v2, v3;
+    
     Matrix4f Model = m_Model->getModelMatrix();
-    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 2.f, 0, cos(cameraRotation) * 2.f));
+    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 5.f, 0.f, cos(cameraRotation) * 5.f));
     Matrix4f View = m_Camera->getViewMatrix();
     Matrix4f Projection = m_Camera->getProjectionMatrix();
     Matrix4f Viewport = Transform::viewportMatrix(
@@ -39,6 +40,7 @@ void Renderer::renderScene(Scene scene, float cameraRotation) {
     Matrix4f Transformation = Viewport * MVP;
 
     for (int i = 0; i < mesh->getNumFaces(); i++) {
+        
         t1 = mesh->getVertex(indices[i].x);
         t2 = mesh->getVertex(indices[i].y);
         t3 = mesh->getVertex(indices[i].z);

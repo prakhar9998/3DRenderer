@@ -82,26 +82,26 @@ bool Mesh::loadFile(std::string path) {
     return true;
 }
 
-Vector3f Mesh::getVertex(int index) {
+Vector3f& Mesh::getVertex(int index) {
     return m_Vertices[index];
 }
 
-Vector3f Mesh::getTexture(int index) {
+Vector3f& Mesh::getTexture(int index) {
     return m_Textures[index];
 }
 
-Vector3f Mesh::getNormal(int index) {
+Vector3f& Mesh::getNormal(int index) {
     return m_Normals[index];
 }
 
-std::vector<Vector3i> Mesh::getVertexIndices() {
+std::vector<Vector3i>& Mesh::getVertexIndices() {
     return m_VertexIndices;
 }
 
-std::vector<Vector3i> Mesh::getTextureIndices() {
+std::vector<Vector3i>& Mesh::getTextureIndices() {
     return m_TextureIndices;
 }
 
-std::vector<Vector3i> Mesh::getNormalIndices() {
+std::vector<Vector3i>& Mesh::getNormalIndices() {
     return m_NormalIndices;
 }

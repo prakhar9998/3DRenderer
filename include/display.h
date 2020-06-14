@@ -23,9 +23,8 @@ public:
     void update();
     void createWindow();
     void swapBuffers(sf::Uint8* pixelBuffer);
-    void run();
     
     sf::RenderWindow& getWindowInstance();
 };
 
-#endif
+#endif      // DISPLAY_H
