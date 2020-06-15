@@ -15,7 +15,7 @@ class Rasterizer {
 public:
     Rasterizer();
     ~Rasterizer();
-    static Vector3f barycentric(Vector3f v1, Vector3f v2, Vector3f v3);
+    static Vector3f barycentric(Vector2f v0, Vector2f v1, Vector2f v2, Vector2f P);
     static void setPixel(int x, int y, sf::Color color, sf::Uint8* pixelBuffer);
     static void drawLine(Vector2i p1, Vector2i p2, sf::Color color, sf::Uint8* pixelBuffer);
     static void drawTriangle(Vector4f *pts, sf::Color color, sf::Uint8* pixelBuffer);

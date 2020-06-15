@@ -23,8 +23,8 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     Mesh* mesh = m_Model->getMesh();
     std::vector<Vector3i>& indices = mesh->getVertexIndices();
     // TODO: Add vector4f coords in mesh.
-    Vector3f t1, t2, t3;
-    Vector4f v1, v2, v3;
+    Vector3f t[3];
+    Vector4f pts[3];
     
     Matrix4f Model = m_Model->getModelMatrix();
     m_Camera->setPosition(Vector3f(sin(cameraRotation) * 5.f, 0.f, cos(cameraRotation) * 5.f));
@@ -39,33 +39,33 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     Matrix4f MVP = Projection * View * Model;
     Matrix4f Transformation = Viewport * MVP;
 
-    for (int i = 0; i < mesh->getNumFaces(); i++) {
-        
-        t1 = mesh->getVertex(indices[i].x);
-        t2 = mesh->getVertex(indices[i].y);
-        t3 = mesh->getVertex(indices[i].z);
-        v1.x = t1.x;
-        v1.y = t1.y;
-        v1.z = t1.z;
-        v1.w = 1;
-        v2.x = t2.x;
-        v2.y = t2.y;
-        v2.z = t2.z;
-        v2.w = 1;
-        v3.x = t3.x;
-        v3.y = t3.y;
-        v3.z = t3.z;
-        v3.w = 1;
+    srand(42);      // seed for random colors
 
-        v1 = Transformation * v1;
-        v2 = Transformation * v2;
-        v3 = Transformation * v3;
-        v1 = v1 / v1.w;
-        v2 = v2 / v2.w;
-        v3 = v3 / v3.w;
-        Rasterizer::drawLine(Vector2i(v1.x, v1.y), Vector2i(v2.x, v2.y), sf::Color::White, m_PixelBuffer);
-        Rasterizer::drawLine(Vector2i(v2.x, v2.y), Vector2i(v3.x, v3.y), sf::Color::White, m_PixelBuffer);
-        Rasterizer::drawLine(Vector2i(v1.x, v1.y), Vector2i(v3.x, v3.y), sf::Color::White, m_PixelBuffer);
+    for (int i = 0; i < mesh->getNumFaces(); i++) {
+        for (int j = 0; j < 3; j++) {
+            t[j] = mesh->getVertex(indices[i][j]);
+            t[j] = mesh->getVertex(indices[i][j]);
+            t[j] = mesh->getVertex(indices[i][j]);
+        }
+        
+        pts[0].x = t[0].x;
+        pts[0].y = t[0].y;
+        pts[0].z = t[0].z;
+        pts[0].w = 1;
+        pts[1].x = t[1].x;
+        pts[1].y = t[1].y;
+        pts[1].z = t[1].z;
+        pts[1].w = 1;
+        pts[2].x = t[2].x;
+        pts[2].y = t[2].y;
+        pts[2].z = t[2].z;
+        pts[2].w = 1;
+
+        pts[0] = Transformation * pts[0];
+        pts[1] = Transformation * pts[1];
+        pts[2] = Transformation * pts[2];
+
+        Rasterizer::drawTriangle(pts, sf::Color(rand() % 255, rand() % 255, rand() % 255, 255), m_PixelBuffer);
     }
 }
 
