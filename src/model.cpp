@@ -33,7 +33,7 @@ void Model::transformModel(Vector3f translate, Vector3f rotate, Vector3f scale) 
     m_ModelMatrix = T*R*S;
 }
 
-Matrix4f Model::getModelMatrix() { return m_ModelMatrix; }
+const Matrix4f& Model::getModelMatrix() const { return m_ModelMatrix; }
 
 Mesh* Model::getMesh() {
     return m_Mesh;

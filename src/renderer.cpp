@@ -7,12 +7,21 @@
 
 Renderer::Renderer() {
     m_PixelBuffer = new sf::Uint8[4 * DisplayBackend::WINDOW_WIDTH * DisplayBackend::WINDOW_HEIGHT];
+    m_Zbuffer = new float[DisplayBackend::WINDOW_WIDTH * DisplayBackend::WINDOW_HEIGHT];
     m_Camera = nullptr;
+    m_Viewport = Transform::viewportMatrix(
+        DisplayBackend::WINDOW_WIDTH/8,
+        DisplayBackend::WINDOW_HEIGHT/8,
+        DisplayBackend::WINDOW_WIDTH*3/4,
+        DisplayBackend::WINDOW_HEIGHT*3/4
+    );
 }
 
 Renderer::~Renderer() {
     delete [] m_PixelBuffer;
 }
+
+// Matrix4f& Renderer::getViewportMatrix() { return m_Viewport; }
 
 void Renderer::renderScene(Scene& scene, float cameraRotation) {
     m_Model = scene.getModel();
@@ -30,24 +39,20 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     m_Camera->setPosition(Vector3f(sin(cameraRotation) * 5.f, 0.f, cos(cameraRotation) * 5.f));
     Matrix4f View = m_Camera->getViewMatrix();
     Matrix4f Projection = m_Camera->getProjectionMatrix();
-    Matrix4f Viewport = Transform::viewportMatrix(
-        DisplayBackend::WINDOW_WIDTH/8,
-        DisplayBackend::WINDOW_HEIGHT/8,
-        DisplayBackend::WINDOW_WIDTH*3/4,
-        DisplayBackend::WINDOW_HEIGHT*3/4
-    );
-    Matrix4f MVP = Projection * View * Model;
-    Matrix4f Transformation = Viewport * MVP;
+    Matrix4f Transformation = m_Viewport * Projection * View * Model;
 
     srand(42);      // seed for random colors
-
     for (int i = 0; i < mesh->getNumFaces(); i++) {
         for (int j = 0; j < 3; j++) {
             t[j] = mesh->getVertex(indices[i][j]);
             t[j] = mesh->getVertex(indices[i][j]);
             t[j] = mesh->getVertex(indices[i][j]);
         }
-        
+
+        // early removal of faces away from camera. Helps speed up a bit.
+        Vector3f n = normalize(cross(t[1] - t[0], t[2] - t[0]));
+        if (dot(m_Camera->getCameraDirection(), n) < 0) continue;
+
         pts[0].x = t[0].x;
         pts[0].y = t[0].y;
         pts[0].z = t[0].z;

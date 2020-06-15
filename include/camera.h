@@ -21,6 +21,7 @@ public:
     void setFOV(float fov);
     void setNear(float near);
     void setFar(float far);
+    Vector3f getCameraDirection();
     Matrix4f getProjectionMatrix();
     Matrix4f getViewMatrix();
 };

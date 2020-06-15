@@ -62,3 +62,7 @@ Matrix4f Camera::getProjectionMatrix() {
 }
 
 Matrix4f Camera::getViewMatrix() { return Transform::lookAt(m_Position, m_Target, m_Up); }
+
+Vector3f Camera::getCameraDirection() {
+    return m_Position - m_Target;
+}

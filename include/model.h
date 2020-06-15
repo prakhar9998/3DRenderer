@@ -21,7 +21,7 @@ public:
     Model();
     ~Model();
     void transformModel(Vector3f translate, Vector3f rotate, Vector3f scale);
-    Matrix4f getModelMatrix();
+    const Matrix4f& getModelMatrix() const;
     Mesh* getMesh();
 };
 
