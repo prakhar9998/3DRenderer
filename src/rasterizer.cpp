@@ -80,7 +80,8 @@ Vector3f Rasterizer::barycentric(Vector2f v0, Vector2f v1, Vector2f v2, Vector2f
     // float invDenom = 1 / (p0.x * p1.y - p1.x * p0.y);
     // float u = (p2.x * p1.y - p1.x * p2.y) * invDenom;
     // float v = (p0.x * p2.y - p2.x * p0.y) * invDenom;
-
+    float denom = ((v1.x-v0.x) * (v2.y-v0.y) - (v2.x-v0.x) * (v1.y-v0.y));
+    if (denom < std::abs(1e-3)) return Vector3f(-1.f, 0.f, 0.f);         // degenerate triangle
     float invDenom = 1 / ((v1.x-v0.x) * (v2.y-v0.y) - (v2.x-v0.x) * (v1.y-v0.y));
     float u = ((P.x-v0.x) * (v2.y-v0.y) - (v2.x-v0.x) * (P.y-v0.y)) * invDenom;
     float v = ((v1.x-v0.x) * (P.y-v0.y) - (P.x-v0.x) * (v1.y-v0.y)) * invDenom;
@@ -88,14 +89,20 @@ Vector3f Rasterizer::barycentric(Vector2f v0, Vector2f v1, Vector2f v2, Vector2f
     return Vector3f(1.f - u - v, u, v);
 }
 
-void Rasterizer::drawTriangle(Vector4f *pts, sf::Color color, sf::Uint8* pixelBuffer, float* zbuffer) {
+void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, sf::Uint8* pixelBuffer, float* zbuffer) {
     // calculate bounding box of the three coordinates.
 
     float minX = std::min(pts[0].x/pts[0].w, std::min(pts[1].x/pts[1].w, pts[2].x/pts[2].w));
     float maxX = std::max(pts[0].x/pts[0].w, std::max(pts[1].x/pts[1].w, pts[2].x/pts[2].w));
     float minY = std::min(pts[0].y/pts[0].w, std::min(pts[1].y/pts[1].w, pts[2].y/pts[2].w));
     float maxY = std::max(pts[0].y/pts[0].w, std::max(pts[1].y/pts[1].w, pts[2].y/pts[2].w));
+    
+    // TODO: Add frustum clipping and remove these tests below.
+    // If the model is too big, or reaches out of screen then
+    // segfault occurs if not checked since these ranges are used to index in pixel and z-buffer.
 
+    if (minX < 0 || maxX < 0 || minY < 0 || maxY < 0) return;
+    if (minX > 800 || maxX > 800 || minY > 800 || maxY > 800) return;
     Vector2i pixel;
     for (pixel.x = minX; pixel.x < maxX; pixel.x++) {       // implicit conversion to int
         for (pixel.y = minY; pixel.y < maxY; pixel.y++) {
@@ -105,14 +112,24 @@ void Rasterizer::drawTriangle(Vector4f *pts, sf::Color color, sf::Uint8* pixelBu
                 Vector2f(pts[2].x/pts[2].w, pts[2].y/pts[2].w),
                 Vector2f(pixel.x, pixel.y)
             );
-            
+            // std::cout << barc << std::endl;
             if (barc.x < 0 || barc.y < 0 || barc.z < 0) continue;       // the point is not inside the triangle
             float zc = pts[0][2] * barc.x + pts[1][2] * barc.y + pts[2][2] * barc.z;        // interpolate z axis
             
+            Vector2f uv(0., 0.);
+            
+            // interpolating uv coords to get the texture coordinates for this pixel
+            for (int i = 0; i < 3; i++) {
+                uv.x += uv_coords[i][0] * barc[i];
+                uv.y += uv_coords[i][1] * barc[i];
+            }
+
             // check and update z-zbuffer
             if (zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] < zc) continue;
             zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] = zc;
-            
+
+            sf::Color color = tex->getColor(uv.x * tex->width, uv.y * tex->height);
+
             // random color for now, later shader will decide the color.
             setPixel(pixel.x, pixel.y, color, pixelBuffer);
         }

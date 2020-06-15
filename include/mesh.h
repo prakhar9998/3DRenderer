@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <string>
-
 #include "vector3d.h"
 
 class Mesh {
@@ -19,7 +18,7 @@ private:
     std::vector<Vector3i> m_VertexIndices;
     std::vector<Vector3i> m_TextureIndices;
     std::vector<Vector3i> m_NormalIndices;
-
+    
 public:
     Mesh();
     ~Mesh();
@@ -27,6 +26,7 @@ public:
     int getNumVertices();
     int getNumFaces();
     bool loadFile(std::string path);
+    
     void normalizeMesh();
     Vector3f& getVertex(int index);
     Vector3f& getTexture(int index);
@@ -34,6 +34,7 @@ public:
     std::vector<Vector3i>& getVertexIndices();
     std::vector<Vector3i>& getTextureIndices();
     std::vector<Vector3i>& getNormalIndices();
+
 };
 
 #endif      // MESH_H

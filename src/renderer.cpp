@@ -27,29 +27,29 @@ Renderer::~Renderer() {
 void Renderer::renderScene(Scene& scene, float cameraRotation) {
     m_Model = scene.getModel();
     m_Camera = scene.getCamera();
-
+    Texture* tex = m_Model->getDiffuse();
     // drawing mesh part
     
     Mesh* mesh = m_Model->getMesh();
-    std::vector<Vector3i>& indices = mesh->getVertexIndices();
+    std::vector<Vector3i>& vertices = mesh->getVertexIndices();
+    std::vector<Vector3i>& texture = mesh->getTextureIndices();
     // TODO: Add vector4f coords in mesh.
     Vector3f t[3];
     Vector4f pts[3];
+    Vector3f uv[3];
     
     Matrix4f Model = m_Model->getModelMatrix();
-    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 5.f, 0.f, cos(cameraRotation) * 5.f));
+    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 3.f, 0.f, cos(cameraRotation) * 3.f));
     Matrix4f View = m_Camera->getViewMatrix();
     Matrix4f Projection = m_Camera->getProjectionMatrix();
     Matrix4f Transformation = m_Viewport * Projection * View * Model;
 
-    srand(42);      // seed for random colors
     for (int i = 0; i < mesh->getNumFaces(); i++) {
         for (int j = 0; j < 3; j++) {
-            t[j] = mesh->getVertex(indices[i][j]);
-            t[j] = mesh->getVertex(indices[i][j]);
-            t[j] = mesh->getVertex(indices[i][j]);
-        }
+            t[j] = mesh->getVertex(vertices[i][j]);
 
+            uv[j] = mesh->getTexture(texture[i][j]);
+        }
         // early removal of faces away from camera. Helps speed up a bit.
         Vector3f n = normalize(cross(t[1] - t[0], t[2] - t[0]));
         if (dot(m_Camera->getCameraDirection(), n) < 0) continue;
@@ -71,7 +71,7 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
         pts[1] = Transformation * pts[1];
         pts[2] = Transformation * pts[2];
 
-        Rasterizer::drawTriangle(pts, sf::Color(rand() % 255, rand() % 255, rand() % 255, 255), m_PixelBuffer, m_Zbuffer);
+        Rasterizer::drawTriangle(pts, uv, tex, m_PixelBuffer, m_Zbuffer);
     }
     std::fill(m_Zbuffer, m_Zbuffer + DisplayBackend::WINDOW_WIDTH*DisplayBackend::WINDOW_HEIGHT, std::numeric_limits<float>::max());
 }

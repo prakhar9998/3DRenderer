@@ -58,29 +58,31 @@ bool Mesh::loadFile(std::string path) {
             iss >> i >> j >> k;
             m_Normals.push_back(Vector3f(i, j, k));
         } else if (data == "f") {
-            char slash;
-            int x, y, z;
-            iss >> x >> y >> z;
-            x--; y--; z--;
-            m_VertexIndices.push_back(Vector3i(x, y, z));
             // char slash;
-            // int vi[3], vti[3], vni[3];
-            // iss >> vi[0] >> slash >> vti[0] >> slash >> vni[0];
-            // iss >> vi[1] >> slash >> vti[1] >> slash >> vni[1];
-            // iss >> vi[2] >> slash >> vti[2] >> slash >> vni[2];
-            // for (int i = 0; i < 3; i++) {
-            //     vi[i]--;
-            //     vti[i]--;
-            //     vni[i]--;
-            // }
-            // m_VertexIndices.push_back(Vector3i(vi[0], vi[1], vi[2]));
-            // m_TextureIndices.push_back(Vector3i(vti[0], vti[1], vti[2]));
-            // m_NormalIndices.push_back(Vector3i(vni[0], vni[1], vni[2]));
+            // int x, y, z;
+            // iss >> x >> y >> z;
+            // x--; y--; z--;
+            // m_VertexIndices.push_back(Vector3i(x, y, z));
+            char slash;
+            int vi[3], vti[3], vni[3];
+            iss >> vi[0] >> slash >> vti[0] >> slash >> vni[0];
+            iss >> vi[1] >> slash >> vti[1] >> slash >> vni[1];
+            iss >> vi[2] >> slash >> vti[2] >> slash >> vni[2];
+            for (int i = 0; i < 3; i++) {
+                vi[i]--;
+                vti[i]--;
+                vni[i]--;
+            }
+            m_VertexIndices.push_back(Vector3i(vi[0], vi[1], vi[2]));
+            m_TextureIndices.push_back(Vector3i(vti[0], vti[1], vti[2]));
+            m_NormalIndices.push_back(Vector3i(vni[0], vni[1], vni[2]));
             m_NumFaces++;
         }
     }
     return true;
 }
+
+
 
 Vector3f& Mesh::getVertex(int index) {
     return m_Vertices[index];

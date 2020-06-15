@@ -24,9 +24,11 @@ void Engine::run() {
 
     // TODO: Move this into scene loader, which loads all the models and cams by itself.
 
-    Model* teapot = new Model("teapot.obj");
+    //  the files have to be changed here manually for now, later I will use cmdline arguments for this
+    Model* teapot = new Model("capsule.obj");
+    teapot->loadDiffuse("capsule0.jpg");
     teapot->transformModel(
-        Vector3f(0., 1., 0.),
+        Vector3f(0., 0., 0.),
         Vector3f(0., 0., 0.),
         Vector3f(1., 1., 1.)
     );

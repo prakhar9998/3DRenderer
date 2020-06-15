@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include "mesh.h"
 #include "vector3d.h"
+#include "model.h"
 
 /**
  * Rasterizer class holds functions which are required to rasterize a triangle
@@ -18,7 +19,7 @@ public:
     static Vector3f barycentric(Vector2f v0, Vector2f v1, Vector2f v2, Vector2f P);
     static void setPixel(int x, int y, sf::Color color, sf::Uint8* pixelBuffer);
     static void drawLine(Vector2i p1, Vector2i p2, sf::Color color, sf::Uint8* pixelBuffer);
-    static void drawTriangle(Vector4f *pts, sf::Color color, sf::Uint8* pixelBuffer, float* zbuffer);
+    static void drawTriangle(Vector4f *pts, Vector3f* uv, Texture* tex, sf::Uint8* pixelBuffer, float* zbuffer);
 };
 
 #endif      // RASTERIZER_H
