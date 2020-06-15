@@ -3,8 +3,7 @@
 
 #include "mesh.h"
 #include "matrix.h"
-
-#include <SFML/Graphics/Color.hpp>
+#include "texture.h"
 
 /**
  * This class contains every model which is to be rendered on the scene
@@ -12,28 +11,6 @@
  * model matrix, textures and material files.
  * */
 
-struct Texture {
-    unsigned char* image;
-    int width;
-    int height;
-    int channels;
-
-    Texture() {
-        image = nullptr;
-    }
-
-    ~Texture() {
-        delete [] image;
-    }
-
-    sf::Color getColor(int i, int j) {
-        if (!image) return sf::Color(0, 0, 0, 0xff);
-        unsigned char* pixelOffset = image + (i + j * width) * channels;
-        return sf::Color(pixelOffset[0], pixelOffset[1], pixelOffset[2], 0xff);
-    }
-
-    bool load_texture(std::string filename);
-};
 
 class Model {
 private:

@@ -1,9 +1,6 @@
 #include "model.h"
 #include "transform.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 Model::Model() : m_filepath("teapot.obj") {
     m_ModelMatrix = identity(m_ModelMatrix);
     m_Mesh = new Mesh;
@@ -48,16 +45,4 @@ Texture* Model::getDiffuse() { return m_Diffuse; }
 
 void Model::loadDiffuse(std::string filename) {
     m_Diffuse->load_texture(filename);
-}
-
-
-bool Texture::load_texture(std::string filename) {
-    stbi_set_flip_vertically_on_load(true);
-    image = stbi_load(filename.c_str(), &width, &height, &channels, 0);
-    if (!image) {
-        std::cout << "Error loading texture file " << filename << std::endl;
-        return false;
-    }
-    std::cout << "Successfully loaded texture file " << filename << std::endl;
-    return true;
 }
