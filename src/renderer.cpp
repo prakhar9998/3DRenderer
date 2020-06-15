@@ -8,6 +8,7 @@
 Renderer::Renderer() {
     m_PixelBuffer = new sf::Uint8[4 * DisplayBackend::WINDOW_WIDTH * DisplayBackend::WINDOW_HEIGHT];
     m_Zbuffer = new float[DisplayBackend::WINDOW_WIDTH * DisplayBackend::WINDOW_HEIGHT];
+    std::fill_n(m_Zbuffer, DisplayBackend::WINDOW_WIDTH * DisplayBackend::WINDOW_HEIGHT, std::numeric_limits<float>::max());
     m_Camera = nullptr;
     m_Viewport = Transform::viewportMatrix(
         DisplayBackend::WINDOW_WIDTH/8,
@@ -70,8 +71,9 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
         pts[1] = Transformation * pts[1];
         pts[2] = Transformation * pts[2];
 
-        Rasterizer::drawTriangle(pts, sf::Color(rand() % 255, rand() % 255, rand() % 255, 255), m_PixelBuffer);
+        Rasterizer::drawTriangle(pts, sf::Color(rand() % 255, rand() % 255, rand() % 255, 255), m_PixelBuffer, m_Zbuffer);
     }
+    std::fill(m_Zbuffer, m_Zbuffer + DisplayBackend::WINDOW_WIDTH*DisplayBackend::WINDOW_HEIGHT, std::numeric_limits<float>::max());
 }
 
 sf::Uint8* Renderer::getPixelBuffer() { return m_PixelBuffer; };

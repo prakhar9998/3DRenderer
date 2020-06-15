@@ -88,15 +88,13 @@ Vector3f Rasterizer::barycentric(Vector2f v0, Vector2f v1, Vector2f v2, Vector2f
     return Vector3f(1.f - u - v, u, v);
 }
 
-void Rasterizer::drawTriangle(Vector4f *pts, sf::Color color, sf::Uint8* pixelBuffer) {
+void Rasterizer::drawTriangle(Vector4f *pts, sf::Color color, sf::Uint8* pixelBuffer, float* zbuffer) {
     // calculate bounding box of the three coordinates.
 
     float minX = std::min(pts[0].x/pts[0].w, std::min(pts[1].x/pts[1].w, pts[2].x/pts[2].w));
     float maxX = std::max(pts[0].x/pts[0].w, std::max(pts[1].x/pts[1].w, pts[2].x/pts[2].w));
     float minY = std::min(pts[0].y/pts[0].w, std::min(pts[1].y/pts[1].w, pts[2].y/pts[2].w));
     float maxY = std::max(pts[0].y/pts[0].w, std::max(pts[1].y/pts[1].w, pts[2].y/pts[2].w));
-
-    // std::cout << minX << " " << maxX << " " << minY << " " << maxY << std::endl;
 
     Vector2i pixel;
     for (pixel.x = minX; pixel.x < maxX; pixel.x++) {       // implicit conversion to int
@@ -107,8 +105,14 @@ void Rasterizer::drawTriangle(Vector4f *pts, sf::Color color, sf::Uint8* pixelBu
                 Vector2f(pts[2].x/pts[2].w, pts[2].y/pts[2].w),
                 Vector2f(pixel.x, pixel.y)
             );
+            
             if (barc.x < 0 || barc.y < 0 || barc.z < 0) continue;       // the point is not inside the triangle
-
+            float zc = pts[0][2] * barc.x + pts[1][2] * barc.y + pts[2][2] * barc.z;        // interpolate z axis
+            
+            // check and update z-zbuffer
+            if (zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] < zc) continue;
+            zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] = zc;
+            
             // random color for now, later shader will decide the color.
             setPixel(pixel.x, pixel.y, color, pixelBuffer);
         }
