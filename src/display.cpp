@@ -2,8 +2,9 @@
 #include <math.h>
 #include <algorithm>
 
-DisplayBackend::DisplayBackend()
-: m_PixelBuffer(new sf::Uint8[WINDOW_WIDTH * WINDOW_HEIGHT * 4]) {
+DisplayBackend::DisplayBackend() {
+    m_PixelBuffer = new sf::Uint8[WINDOW_WIDTH*WINDOW_HEIGHT*4];
+    if(m_PixelBuffer) std::cout << "done";
     m_Buffer.create(WINDOW_WIDTH, WINDOW_HEIGHT);
     m_Buffer.setRepeated(false);
     m_DrawBuffer.setTexture(m_Buffer);
@@ -24,7 +25,7 @@ void DisplayBackend::update() {
 }
 
 void DisplayBackend::swapBuffers(sf::Uint8* pixelBuffer) {
-    m_PixelBuffer = pixelBuffer;
+    std::copy_n(pixelBuffer, 4*WINDOW_HEIGHT*WINDOW_WIDTH, m_PixelBuffer);
     m_Buffer.update(m_PixelBuffer);
     std::fill(pixelBuffer, pixelBuffer + 4*WINDOW_WIDTH*WINDOW_HEIGHT, 0);
 }

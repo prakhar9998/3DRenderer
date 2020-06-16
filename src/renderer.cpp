@@ -39,7 +39,7 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     Vector3f uv[3];
     
     Matrix4f Model = m_Model->getModelMatrix();
-    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 3.f, 0.f, cos(cameraRotation) * 3.f));
+    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 5.f, 0.f, cos(cameraRotation) * 5.f));
     Matrix4f View = m_Camera->getViewMatrix();
     Matrix4f Projection = m_Camera->getProjectionMatrix();
     Matrix4f Transformation = m_Viewport * Projection * View * Model;
@@ -50,8 +50,9 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
 
             uv[j] = mesh->getTexture(texture[i][j]);
         }
+        
         // early removal of faces away from camera. Helps speed up a bit.
-        Vector3f n = normalize(cross(t[1] - t[0], t[2] - t[0]));
+        Vector3f n = cross(t[1] - t[0], t[2] - t[0]);
         if (dot(m_Camera->getCameraDirection(), n) < 0) continue;
 
         pts[0].x = t[0].x;

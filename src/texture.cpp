@@ -10,6 +10,8 @@ Texture::~Texture() { delete [] image; }
 
 sf::Color Texture::getColor(int i, int j) {
     if (!image) return sf::Color(0, 0, 0, 0xff);
+    i = i % width;
+    j = j % height;
     unsigned char* pixelOffset = image + (i + j * width) * channels;
     return sf::Color(pixelOffset[0], pixelOffset[1], pixelOffset[2], 0xff);
 }
