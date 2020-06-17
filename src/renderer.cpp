@@ -2,6 +2,7 @@
 #include "display.h"
 #include "transform.h"
 #include "rasterizer.h"
+#include "shader.h"
 
 #include <math.h>
 
@@ -37,13 +38,15 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     Vector3f t[3];
     Vector4f pts[3];
     Vector3f uv[3];
+
+    FlatShader shader;
     
     Matrix4f Model = m_Model->getModelMatrix();
     m_Camera->setPosition(Vector3f(sin(cameraRotation) * 5.f, 0.f, cos(cameraRotation) * 5.f));
     Matrix4f View = m_Camera->getViewMatrix();
     Matrix4f Projection = m_Camera->getProjectionMatrix();
     Matrix4f Transformation = m_Viewport * Projection * View * Model;
-
+    shader.transform = Transformation;
     for (int i = 0; i < mesh->getNumFaces(); i++) {
         for (int j = 0; j < 3; j++) {
             t[j] = mesh->getVertex(vertices[i][j]);
@@ -54,25 +57,30 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
         // early removal of faces away from camera. Helps speed up a bit.
         Vector3f n = cross(t[1] - t[0], t[2] - t[0]);
         if (dot(m_Camera->getCameraDirection(), n) < 0) continue;
+        n = normalize(n);
+        // run vertex shader for every pixel.
+        pts[0] = shader.vertex(t[0], n);
+        pts[1] = shader.vertex(t[1], n);
+        pts[2] = shader.vertex(t[2], n);
 
-        pts[0].x = t[0].x;
-        pts[0].y = t[0].y;
-        pts[0].z = t[0].z;
-        pts[0].w = 1;
-        pts[1].x = t[1].x;
-        pts[1].y = t[1].y;
-        pts[1].z = t[1].z;
-        pts[1].w = 1;
-        pts[2].x = t[2].x;
-        pts[2].y = t[2].y;
-        pts[2].z = t[2].z;
-        pts[2].w = 1;
+        // pts[0].x = t[0].x;
+        // pts[0].y = t[0].y;
+        // pts[0].z = t[0].z;
+        // pts[0].w = 1;
+        // pts[1].x = t[1].x;
+        // pts[1].y = t[1].y;
+        // pts[1].z = t[1].z;
+        // pts[1].w = 1;
+        // pts[2].x = t[2].x;
+        // pts[2].y = t[2].y;
+        // pts[2].z = t[2].z;
+        // pts[2].w = 1;
 
-        pts[0] = Transformation * pts[0];
-        pts[1] = Transformation * pts[1];
-        pts[2] = Transformation * pts[2];
+        // pts[0] = Transformation * pts[0];
+        // pts[1] = Transformation * pts[1];
+        // pts[2] = Transformation * pts[2];
 
-        Rasterizer::drawTriangle(pts, uv, tex, m_PixelBuffer, m_Zbuffer);
+        Rasterizer::drawTriangle(pts, uv, tex, shader, m_PixelBuffer, m_Zbuffer);
     }
     std::fill(m_Zbuffer, m_Zbuffer + DisplayBackend::WINDOW_WIDTH*DisplayBackend::WINDOW_HEIGHT, std::numeric_limits<float>::max());
 }

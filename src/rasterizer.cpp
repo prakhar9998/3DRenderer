@@ -89,9 +89,9 @@ Vector3f Rasterizer::barycentric(Vector2f v0, Vector2f v1, Vector2f v2, Vector2f
     return Vector3f(1.f - u - v, u, v);
 }
 
-void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, sf::Uint8* pixelBuffer, float* zbuffer) {
+void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, IShader &shader, sf::Uint8* pixelBuffer, float* zbuffer) {
+    
     // calculate bounding box of the three coordinates.
-
     float minX = std::min(pts[0].x/pts[0].w, std::min(pts[1].x/pts[1].w, pts[2].x/pts[2].w));
     float maxX = std::max(pts[0].x/pts[0].w, std::max(pts[1].x/pts[1].w, pts[2].x/pts[2].w));
     float minY = std::min(pts[0].y/pts[0].w, std::min(pts[1].y/pts[1].w, pts[2].y/pts[2].w));
@@ -112,25 +112,27 @@ void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, 
                 Vector2f(pts[2].x/pts[2].w, pts[2].y/pts[2].w),
                 Vector2f(pixel.x, pixel.y)
             );
-            // std::cout << barc << std::endl;
+
             if (barc.x < 0 || barc.y < 0 || barc.z < 0) continue;       // the point is not inside the triangle
             float zc = pts[0][2] * barc.x + pts[1][2] * barc.y + pts[2][2] * barc.z;        // interpolate z axis
             
-            Vector2f uv(0., 0.);
+            // Vector2f uv(0., 0.);
             
             // interpolating uv coords to get the texture coordinates for this pixel
-            for (int i = 0; i < 3; i++) {
-                uv.x += uv_coords[i][0] * barc[i];
-                uv.y += uv_coords[i][1] * barc[i];
-            }
+            // for (int i = 0; i < 3; i++) {
+            //     uv.x += uv_coords[i][0] * barc[i];
+            //     uv.y += uv_coords[i][1] * barc[i];
+            // }
+
+            sf::Color color;
+            if (shader.fragment(color)) continue;
 
             // check and update z-zbuffer
             if (zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] < zc) continue;
             zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] = zc;
 
-            sf::Color color = tex->getColor(uv.x * tex->width, uv.y * tex->height);
-
-            // random color for now, later shader will decide the color.
+            // sf::Color color = tex->getColor(uv.x * tex->width, uv.y * tex->height);
+            // std::cout << "lol" << std::endl;
             setPixel(pixel.x, pixel.y, color, pixelBuffer);
         }
     }

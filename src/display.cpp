@@ -4,7 +4,6 @@
 
 DisplayBackend::DisplayBackend() {
     m_PixelBuffer = new sf::Uint8[WINDOW_WIDTH*WINDOW_HEIGHT*4];
-    if(m_PixelBuffer) std::cout << "done";
     m_Buffer.create(WINDOW_WIDTH, WINDOW_HEIGHT);
     m_Buffer.setRepeated(false);
     m_DrawBuffer.setTexture(m_Buffer);
