@@ -11,6 +11,17 @@ Mesh::~Mesh() {}
 int Mesh::getNumFaces() { return m_NumFaces; }
 int Mesh::getNumVertices() { return m_NumVertices; }
 
+void Mesh::calculateFaceNormals() {
+    // pre-calculates surface normal for every face in the mesh for techniques likes backface culling
+    Vector3f tmp[3];
+    for (int i = 0; i < m_NumFaces; i++) {
+        for (int j = 0; j < 3; j++) {
+            tmp[j] = m_Vertices[m_VertexIndices[i][j]];
+        }
+        m_faceNormal.push_back(normalize(cross(tmp[1]-tmp[0], tmp[2]-tmp[0])));
+    }
+}
+
 void Mesh::normalizeMesh() {
     // bring down to -1 and +1 dimensions
     Vector3f maxPosition = m_Vertices[0];
@@ -77,12 +88,18 @@ bool Mesh::loadFile(std::string path) {
             m_TextureIndices.push_back(Vector3i(vti[0], vti[1], vti[2]));
             m_NormalIndices.push_back(Vector3i(vni[0], vni[1], vni[2]));
             m_NumFaces++;
+
+            
         }
     }
+    calculateFaceNormals();        
+
     return true;
 }
 
-
+Vector3f& Mesh::getFaceNormal(int face_idx) {
+    return m_faceNormal[face_idx];
+}
 
 Vector3f& Mesh::getVertex(int index) {
     return m_Vertices[index];

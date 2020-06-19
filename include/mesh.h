@@ -13,12 +13,16 @@ private:
     std::vector<Vector3f> m_Vertices;
     std::vector<Vector3f> m_Textures;
     std::vector<Vector3f> m_Normals;
+    std::vector<Vector3f> m_faceNormal;
 
     // indices which form a face
     std::vector<Vector3i> m_VertexIndices;
     std::vector<Vector3i> m_TextureIndices;
     std::vector<Vector3i> m_NormalIndices;
-    
+
+private:
+    void calculateFaceNormals();
+
 public:
     Mesh();
     ~Mesh();
@@ -26,14 +30,15 @@ public:
     int getNumVertices();
     int getNumFaces();
     bool loadFile(std::string path);
-    
     void normalizeMesh();
     Vector3f& getVertex(int index);
     Vector3f& getTexture(int index);
     Vector3f& getNormal(int index);
+    Vector3f& getFaceNormal(int face_idx);
     std::vector<Vector3i>& getVertexIndices();
     std::vector<Vector3i>& getTextureIndices();
     std::vector<Vector3i>& getNormalIndices();
+    
 
 };
 

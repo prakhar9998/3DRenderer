@@ -46,10 +46,9 @@ struct FlatShader : IShader {
 struct GourardShader : IShader {
     Matrix4f transform;
     Vector3f varIntensity;
-    Vector3f light;
+    Vector3f light = Vector3f(1.f, 0.f, 1.f);
 
     Vector4f vertex(const Vector3f& vertex, const Vector3f& normal, int nth) override {
-        light = Vector3f(0.f, 0.f, 1.f);
         varIntensity[nth] = std::max(0.f, dot(normal, light));
         Vector4f gl_Vertex = Vector4f(vertex.x, vertex.y, vertex.z, 1.f);
         return transform * gl_Vertex;
@@ -57,7 +56,6 @@ struct GourardShader : IShader {
 
     bool fragment(const Vector3f& barycentric, sf::Color& color) override {
         float intensity = dot(varIntensity, barycentric);
-        assert(intensity <= 1);
         color = sf::Color(color.r * intensity, color.g * intensity, color.b * intensity, 255);
         return false;
     }
