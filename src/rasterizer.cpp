@@ -69,17 +69,6 @@ void Rasterizer::drawLine(Vector2i p1, Vector2i p2, sf::Color color, sf::Uint8 *
 Vector3f Rasterizer::barycentric(Vector2f v0, Vector2f v1, Vector2f v2, Vector2f P) {
     // compute barycentric coordinates of the triangle represented by the given vertices
 
-    // TODO: Look for ways to optimize it further. Current bottleneck in the code.
-
-    // the following calculations were taking too much frame time.
-    // maybe pre-calculate p0 and p1 since they're independent of P ?
-    // Vector2f p0 = v1 - v0;
-    // Vector2f p1 = v2 - v0;
-    // Vector2f p2 = P - v0;
-
-    // float invDenom = 1 / (p0.x * p1.y - p1.x * p0.y);
-    // float u = (p2.x * p1.y - p1.x * p2.y) * invDenom;
-    // float v = (p0.x * p2.y - p2.x * p0.y) * invDenom;
     float denom = ((v1.x-v0.x) * (v2.y-v0.y) - (v2.x-v0.x) * (v1.y-v0.y));
     if (denom < std::abs(1e-3)) return Vector3f(-1.f, 0.f, 0.f);         // degenerate triangle
     float invDenom = 1 / ((v1.x-v0.x) * (v2.y-v0.y) - (v2.x-v0.x) * (v1.y-v0.y));
@@ -116,23 +105,23 @@ void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, 
             if (barc.x < 0 || barc.y < 0 || barc.z < 0) continue;       // the point is not inside the triangle
             float zc = pts[0][2] * barc.x + pts[1][2] * barc.y + pts[2][2] * barc.z;        // interpolate z axis
             
-            // Vector2f uv(0., 0.);
+            Vector2f uv(0., 0.);
             
             // interpolating uv coords to get the texture coordinates for this pixel
-            // for (int i = 0; i < 3; i++) {
-            //     uv.x += uv_coords[i][0] * barc[i];
-            //     uv.y += uv_coords[i][1] * barc[i];
-            // }
+            for (int i = 0; i < 3; i++) {
+                uv.x += uv_coords[i][0] * barc[i];
+                uv.y += uv_coords[i][1] * barc[i];
+            }
 
-            sf::Color color;
-            if (shader.fragment(color)) continue;
+            sf::Color color = tex->getColor(uv.x * tex->width, uv.y * tex->height);
+
+            if (shader.fragment(barc, color)) continue;
 
             // check and update z-zbuffer
             if (zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] < zc) continue;
             zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] = zc;
-
-            // sf::Color color = tex->getColor(uv.x * tex->width, uv.y * tex->height);
-            // std::cout << "lol" << std::endl;
+            
+            // std::cout << (int)color.r << " " << (int)color.g << " " << (int)color.b << std::endl;
             setPixel(pixel.x, pixel.y, color, pixelBuffer);
         }
     }

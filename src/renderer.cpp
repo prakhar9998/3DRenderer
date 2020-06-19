@@ -29,56 +29,44 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     m_Model = scene.getModel();
     m_Camera = scene.getCamera();
     Texture* tex = m_Model->getDiffuse();
-    // drawing mesh part
+
     
+    // get the required data of the mesh. 
     Mesh* mesh = m_Model->getMesh();
     std::vector<Vector3i>& vertices = mesh->getVertexIndices();
     std::vector<Vector3i>& texture = mesh->getTextureIndices();
+    std::vector<Vector3i>& normals = mesh->getNormalIndices();
+
     // TODO: Add vector4f coords in mesh.
     Vector3f t[3];
     Vector4f pts[3];
     Vector3f uv[3];
-
-    FlatShader shader;
     
     Matrix4f Model = m_Model->getModelMatrix();
-    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 5.f, 0.f, cos(cameraRotation) * 5.f));
+    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 5.f, 1.f, cos(cameraRotation) * 5.f));
     Matrix4f View = m_Camera->getViewMatrix();
     Matrix4f Projection = m_Camera->getProjectionMatrix();
     Matrix4f Transformation = m_Viewport * Projection * View * Model;
+
+    GourardShader shader;
     shader.transform = Transformation;
+    
     for (int i = 0; i < mesh->getNumFaces(); i++) {
+        
+        // run vertex shader for every vertex.
         for (int j = 0; j < 3; j++) {
             t[j] = mesh->getVertex(vertices[i][j]);
 
             uv[j] = mesh->getTexture(texture[i][j]);
+            pts[j] = shader.vertex(t[j], mesh->getNormal(normals[i][j]), j);
+            
         }
-        
         // early removal of faces away from camera. Helps speed up a bit.
+
+        // TODO: create a function for pre-calculating face normals by averaging the three
+        // vertex normals. It will also help in shader code.
         Vector3f n = cross(t[1] - t[0], t[2] - t[0]);
         if (dot(m_Camera->getCameraDirection(), n) < 0) continue;
-        n = normalize(n);
-        // run vertex shader for every pixel.
-        pts[0] = shader.vertex(t[0], n);
-        pts[1] = shader.vertex(t[1], n);
-        pts[2] = shader.vertex(t[2], n);
-
-        // pts[0].x = t[0].x;
-        // pts[0].y = t[0].y;
-        // pts[0].z = t[0].z;
-        // pts[0].w = 1;
-        // pts[1].x = t[1].x;
-        // pts[1].y = t[1].y;
-        // pts[1].z = t[1].z;
-        // pts[1].w = 1;
-        // pts[2].x = t[2].x;
-        // pts[2].y = t[2].y;
-        // pts[2].z = t[2].z;
-        // pts[2].w = 1;
-
-        // pts[0] = Transformation * pts[0];
-        // pts[1] = Transformation * pts[1];
-        // pts[2] = Transformation * pts[2];
 
         Rasterizer::drawTriangle(pts, uv, tex, shader, m_PixelBuffer, m_Zbuffer);
     }
