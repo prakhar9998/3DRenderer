@@ -66,6 +66,18 @@ void Rasterizer::drawLine(Vector2i p1, Vector2i p2, sf::Color color, sf::Uint8 *
     }
 }
 
+void Rasterizer::drawWireframe(Vector4f *pts, sf::Uint8* pixelBuffer) {
+    Vector2i v[3];
+    for (int i = 0; i < 3; i++) {
+        v[i].x = pts[i].x/pts[i].w;
+        v[i].y = pts[i].y/pts[i].w;
+    }
+
+    drawLine(v[0], v[1], sf::Color::White, pixelBuffer);
+    drawLine(v[0], v[2], sf::Color::White, pixelBuffer);
+    drawLine(v[1], v[2], sf::Color::White, pixelBuffer);
+}
+
 Vector3f Rasterizer::barycentric(Vector2f v0, Vector2f v1, Vector2f v2, Vector2f P) {
     // compute barycentric coordinates of the triangle represented by the given vertices
 
@@ -79,7 +91,7 @@ Vector3f Rasterizer::barycentric(Vector2f v0, Vector2f v1, Vector2f v2, Vector2f
 }
 
 void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, IShader &shader, sf::Uint8* pixelBuffer, float* zbuffer) {
-    
+
     // calculate bounding box of the three coordinates.
     float minX = std::min(pts[0].x/pts[0].w, std::min(pts[1].x/pts[1].w, pts[2].x/pts[2].w));
     float maxX = std::max(pts[0].x/pts[0].w, std::max(pts[1].x/pts[1].w, pts[2].x/pts[2].w));
@@ -112,17 +124,16 @@ void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, 
                 uv.x += uv_coords[i][0] * barc[i];
                 uv.y += uv_coords[i][1] * barc[i];
             }
-
+            
             sf::Color color = tex->getColor(uv.x * tex->width, uv.y * tex->height);
 
             if (shader.fragment(barc, color)) continue;
-
-            // check and update z-zbuffer
-            if (zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] < zc) continue;
-            zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] = zc;
             
-            // std::cout << (int)color.r << " " << (int)color.g << " " << (int)color.b << std::endl;
-            setPixel(pixel.x, pixel.y, color, pixelBuffer);
+            // check and update z-zbuffer
+            if (!(zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] < zc)) {
+                zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] = zc;
+                setPixel(pixel.x, pixel.y, color, pixelBuffer);
+            }
         }
     }
 }

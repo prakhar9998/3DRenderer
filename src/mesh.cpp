@@ -27,7 +27,7 @@ void Mesh::normalizeMesh() {
     Vector3f maxPosition = m_Vertices[0];
     Vector3f minPosition = m_Vertices[0];
 
-    for (int i = 0; i < m_Vertices.size(); i++) {
+    for (size_t i = 0; i < m_Vertices.size(); i++) {
         maxPosition.x = std::max(maxPosition.x, m_Vertices[i].x);
         minPosition.x = std::min(minPosition.x, m_Vertices[i].x);
         maxPosition.y = std::max(maxPosition.y, m_Vertices[i].y);
@@ -39,7 +39,7 @@ void Mesh::normalizeMesh() {
     float minCoord = std::min(std::min(minPosition.x, minPosition.y), minPosition.z);
     minCoord = std::abs(minCoord);
     float scale = std::max(minCoord, maxCoord);
-    for (int i = 0; i < m_Vertices.size(); i++) {
+    for (size_t i = 0; i < m_Vertices.size(); i++) {
         m_Vertices[i] = m_Vertices[i]/scale;
     }
 }

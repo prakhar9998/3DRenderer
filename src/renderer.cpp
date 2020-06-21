@@ -5,6 +5,7 @@
 #include "shader.h"
 
 #include <math.h>
+#include <omp.h>
 
 Renderer::Renderer() {
     m_PixelBuffer = new sf::Uint8[4 * DisplayBackend::WINDOW_WIDTH * DisplayBackend::WINDOW_HEIGHT];
@@ -36,11 +37,6 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     std::vector<Vector3i>& vertices = mesh->getVertexIndices();
     std::vector<Vector3i>& texture = mesh->getTextureIndices();
     std::vector<Vector3i>& normals = mesh->getNormalIndices();
-
-    // TODO: Add vector4f coords in mesh.
-    Vector3f t[3];
-    Vector4f pts[3];
-    Vector3f uv[3];
     
     Matrix4f Model = m_Model->getModelMatrix();
     m_Camera->setPosition(Vector3f(sin(cameraRotation) * 5.f, 1.f, cos(cameraRotation) * 5.f));
@@ -48,27 +44,31 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     Matrix4f Projection = m_Camera->getProjectionMatrix();
     Matrix4f Transformation = m_Viewport * Projection * View * Model;
 
-    GourardShader shader;
-    shader.transform = Transformation;
     
-    for (int i = 0; i < mesh->getNumFaces(); i++) {
+    const int totalFaces = mesh->getNumFaces();
+    
+#pragma omp parallel
+{
+    GourardShader shader;
+    Vector4f pts[3];
+    Vector3f uv[3];
+
+    #pragma omp for
+    for (int i = 0; i < totalFaces; i++) {
         
         // perfrom early backface culling. Helps speed up a bit
         if (dot(m_Camera->getCameraDirection(), mesh->getFaceNormal(i)) < 0) continue;
-
+        shader.transform = Transformation;
+        
         // run vertex shader for every vertex.
         for (int j = 0; j < 3; j++) {
             uv[j] = mesh->getTexture(texture[i][j]);
             pts[j] = shader.vertex(mesh->getVertex(vertices[i][j]), mesh->getNormal(normals[i][j]), j);
         }
 
-        // TODO: create a function for pre-calculating face normals by averaging the three
-        // vertex normals. It will also help in shader code.
-        // Vector3f n = cross(t[1] - t[0], t[2] - t[0]);
-        // if (dot(m_Camera->getCameraDirection(), n) < 0) continue;
-
         Rasterizer::drawTriangle(pts, uv, tex, shader, m_PixelBuffer, m_Zbuffer);
     }
+}
     std::fill(m_Zbuffer, m_Zbuffer + DisplayBackend::WINDOW_WIDTH*DisplayBackend::WINDOW_HEIGHT, std::numeric_limits<float>::max());
 }
 
