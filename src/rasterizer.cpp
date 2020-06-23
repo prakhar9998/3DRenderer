@@ -3,10 +3,20 @@
 #include "camera.h"
 #include "matrix.h"
 #include "display.h"
+#include "transform.h"
+
+#include <omp.h>
 
 Rasterizer::Rasterizer() {}
 
 Rasterizer::~Rasterizer() {}
+
+Matrix4f Rasterizer::Viewport = Transform::viewportMatrix(
+    DisplayBackend::WINDOW_WIDTH/8,
+    DisplayBackend::WINDOW_HEIGHT/8,
+    DisplayBackend::WINDOW_WIDTH*3/4,
+    DisplayBackend::WINDOW_HEIGHT*3/4
+);
 
 void Rasterizer::setPixel(int i, int j, sf::Color color, sf::Uint8* pixelBuffer) {
     if (i < 0 || j < 0) return;
@@ -92,30 +102,45 @@ Vector3f Rasterizer::barycentric(Vector2f v0, Vector2f v1, Vector2f v2, Vector2f
 
 void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, IShader &shader, sf::Uint8* pixelBuffer, float* zbuffer) {
 
+    Vector3f zc = Vector3f(pts[0].z, pts[1].z, pts[2].z);
+
+    pts[0] = Viewport * pts[0];
+    pts[1] = Viewport * pts[1];
+    pts[2] = Viewport * pts[2];
+
+    // pts[0].x = (pts[0].x+1.) * DisplayBackend::WINDOW_WIDTH/2.f;
+    // pts[0].y = (pts[0].y+1.) * DisplayBackend::WINDOW_HEIGHT/2.f;
+    // pts[1].x = (pts[1].x+1.) * DisplayBackend::WINDOW_WIDTH/2.f;
+    // pts[1].y = (pts[1].y+1.) * DisplayBackend::WINDOW_HEIGHT/2.f;
+    // pts[2].x = (pts[2].x+1.) * DisplayBackend::WINDOW_WIDTH/2.f;
+    // pts[2].y = (pts[2].y+1.) * DisplayBackend::WINDOW_HEIGHT/2.f;
+
+    // std::cout << pts[0] << std::endl;
+
     // calculate bounding box of the three coordinates.
-    float minX = std::min(pts[0].x/pts[0].w, std::min(pts[1].x/pts[1].w, pts[2].x/pts[2].w));
-    float maxX = std::max(pts[0].x/pts[0].w, std::max(pts[1].x/pts[1].w, pts[2].x/pts[2].w));
-    float minY = std::min(pts[0].y/pts[0].w, std::min(pts[1].y/pts[1].w, pts[2].y/pts[2].w));
-    float maxY = std::max(pts[0].y/pts[0].w, std::max(pts[1].y/pts[1].w, pts[2].y/pts[2].w));
+    float minX = std::min(pts[0].x, std::min(pts[1].x, pts[2].x));
+    float maxX = std::max(pts[0].x, std::max(pts[1].x, pts[2].x));
+    float minY = std::min(pts[0].y, std::min(pts[1].y, pts[2].y));
+    float maxY = std::max(pts[0].y, std::max(pts[1].y, pts[2].y));
     
     // TODO: Add frustum clipping and remove these tests below.
     // If the model is too big, or reaches out of screen then
     // segfault occurs if not checked since these ranges are used to index in pixel and z-buffer.
 
-    if (minX < 0 || maxX < 0 || minY < 0 || maxY < 0) return;
+    // if (minX < 0 || maxX < 0 || minY < 0 || maxY < 0) return;
     if (minX > 800 || maxX > 800 || minY > 800 || maxY > 800) return;
     Vector2i pixel;
     for (pixel.x = minX; pixel.x < maxX; pixel.x++) {       // implicit conversion to int
         for (pixel.y = minY; pixel.y < maxY; pixel.y++) {
             Vector3f barc = barycentric(
-                Vector2f(pts[0].x/pts[0].w, pts[0].y/pts[0].w),
-                Vector2f(pts[1].x/pts[1].w, pts[1].y/pts[1].w),
-                Vector2f(pts[2].x/pts[2].w, pts[2].y/pts[2].w),
+                Vector2f(pts[0].x, pts[0].y),
+                Vector2f(pts[1].x, pts[1].y),
+                Vector2f(pts[2].x, pts[2].y),
                 Vector2f(pixel.x, pixel.y)
             );
 
             if (barc.x < 0 || barc.y < 0 || barc.z < 0) continue;       // the point is not inside the triangle
-            float zc = pts[0][2] * barc.x + pts[1][2] * barc.y + pts[2][2] * barc.z;        // interpolate z axis
+            float z_dist = dot(zc, barc);        // interpolate z axis
             
             Vector2f uv(0., 0.);
             
@@ -126,12 +151,11 @@ void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, 
             }
             
             sf::Color color = tex->getColor(uv.x * tex->width, uv.y * tex->height);
-
             if (shader.fragment(barc, color)) continue;
             
             // check and update z-zbuffer
-            if (!(zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] < zc)) {
-                zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] = zc;
+            if (z_dist < zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH]) {
+                zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] = z_dist;
                 setPixel(pixel.x, pixel.y, color, pixelBuffer);
             }
         }

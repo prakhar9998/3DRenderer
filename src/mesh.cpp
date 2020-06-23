@@ -88,8 +88,6 @@ bool Mesh::loadFile(std::string path) {
             m_TextureIndices.push_back(Vector3i(vti[0], vti[1], vti[2]));
             m_NormalIndices.push_back(Vector3i(vni[0], vni[1], vni[2]));
             m_NumFaces++;
-
-            
         }
     }
     calculateFaceNormals();        

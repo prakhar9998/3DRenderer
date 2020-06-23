@@ -10,11 +10,12 @@ private:
     float* m_Zbuffer;
     Camera* m_Camera;
     Model* m_Model;
-    Matrix4f m_Viewport;      // viewport matrix for rendering scene
+    // Matrix4f m_Viewport;      // viewport matrix for rendering scene
 public:
     Renderer();
     ~Renderer();
     void renderScene(Scene& scene, float cameraRotation);
+    void perspectiveDivide(Vector4f* verts);
     sf::Uint8* getPixelBuffer();
     // Matrix4f& getViewportMatrix();
 };
