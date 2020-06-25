@@ -19,9 +19,15 @@ Renderer::~Renderer() {
 }
 
 void Renderer::perspectiveDivide(Vector4f* verts) {
-    verts[0] = verts[0]/verts[0].w;
-    verts[1] = verts[1]/verts[1].w;
-    verts[2] = verts[2]/verts[2].w;
+    // verts[0] = verts[0]/verts[0].w;
+    // verts[1] = verts[1]/verts[1].w;
+    // verts[2] = verts[2]/verts[2].w;
+
+    for (int i = 0; i < 3; i++) {
+        verts[i].x /= verts[i].w;
+        verts[i].y /= verts[i].w;
+        verts[i].z /= verts[i].w;
+    }
 }
 
 // Matrix4f& Renderer::getViewportMatrix() { return m_Viewport; }
@@ -46,14 +52,14 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     
     const int totalFaces = mesh->getNumFaces();
     
-#pragma omp parallel
+// #pragma omp parallel
 {
     GourardShader shader;
     Vector4f pts[3];
     Vector3f uv[3];
     shader.MVP = Transformation;
 
-    #pragma omp for schedule(dynamic)
+    // #pragma omp for schedule(dynamic)
     for (int i = 0; i < totalFaces; i++) {
         
         // perfrom early backface culling. Helps speed up a bit
