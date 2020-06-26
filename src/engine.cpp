@@ -28,7 +28,7 @@ void Engine::run() {
     Model* teapot = new Model("./test_models/bs_smile.obj");
     teapot->loadDiffuse("./test_models/bs_smile_diffuse.png");
     teapot->transformModel(
-        Vector3f(0., -.5, 0.),
+        Vector3f(0., 0., 0.),
         Vector3f(0., 0., 0.),
         Vector3f(2.5, 2.5, 2.5)
     );

@@ -77,11 +77,15 @@ void Rasterizer::drawLine(Vector2i p1, Vector2i p2, sf::Color color, sf::Uint8 *
 }
 
 void Rasterizer::drawWireframe(Vector4f *pts, sf::Uint8* pixelBuffer) {
+
     Vector2i v[3];
-    for (int i = 0; i < 3; i++) {
-        v[i].x = pts[i].x/pts[i].w;
-        v[i].y = pts[i].y/pts[i].w;
-    }
+
+    v[0].x = (pts[0].x+1.) * DisplayBackend::WINDOW_WIDTH/2.f;
+    v[0].y = (pts[0].y+1.) * DisplayBackend::WINDOW_HEIGHT/2.f;
+    v[1].x = (pts[1].x+1.) * DisplayBackend::WINDOW_WIDTH/2.f;
+    v[1].y = (pts[1].y+1.) * DisplayBackend::WINDOW_HEIGHT/2.f;
+    v[2].x = (pts[2].x+1.) * DisplayBackend::WINDOW_WIDTH/2.f;
+    v[2].y = (pts[2].y+1.) * DisplayBackend::WINDOW_HEIGHT/2.f;
 
     drawLine(v[0], v[1], sf::Color::White, pixelBuffer);
     drawLine(v[0], v[2], sf::Color::White, pixelBuffer);
@@ -144,14 +148,30 @@ void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, 
     if (minX < 0 || maxX < 0 || minY < 0 || maxY < 0) return;
     if (minX > 800 || maxX > 800 || minY > 800 || maxY > 800) return;
     Vector2i pixel;
-    for (pixel.x = minX; pixel.x < maxX; pixel.x++) {       // implicit conversion to int
-        for (pixel.y = minY; pixel.y < maxY; pixel.y++) {
-            
-            float area = edgeFunction(pts[0], pts[1], pts[2]);
-            float w0 = edgeFunction(pts[1], pts[2], pixel);
-            float w1 = edgeFunction(pts[2], pts[0], pixel);
-            float w2 = edgeFunction(pts[0], pts[1], pixel);
+    pixel.x = minX;
+    pixel.y = minY;
 
+    // values for linearly interpolating the edge function, requires less calculation
+    // makes use of the fact that edgefunction is linear, so we can avoid calculating it at every step
+    float w0_row = edgeFunction(pts[1], pts[2], pixel);
+    float dx0 = pts[1].x - pts[2].x;
+    float dy0 = pts[1].y - pts[2].y;
+    float w1_row = edgeFunction(pts[2], pts[0], pixel);
+    float dx1 = pts[2].x - pts[0].x;
+    float dy1 = pts[2].y - pts[0].y;
+    float w2_row = edgeFunction(pts[0], pts[1], pixel);
+    float dx2 = pts[0].x - pts[1].x;
+    float dy2 = pts[0].y - pts[1].y;
+    float area = edgeFunction(pts[0], pts[1], pts[2]);
+    
+    float w0, w1, w2;
+
+    for (pixel.y = minY; pixel.y < maxY; pixel.y++) {       // implicit conversion to int
+        w0 = w0_row;
+        w1 = w1_row;
+        w2 = w2_row;
+        for (pixel.x = minX; pixel.x < maxX; pixel.x++) {
+            
             // if point p is inside the triangle then proceeed with calculating barycentric coordinates
             if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
                 Vector3f barc{w0/area, w1/area, w2/area};
@@ -177,6 +197,13 @@ void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, 
                     setPixel(pixel.x, pixel.y, color, pixelBuffer);
                 }
             }
+            w0 += dy0;
+            w1 += dy1;
+            w2 += dy2;
         }
+
+        w0_row -= dx0;
+        w1_row -= dx1;
+        w2_row -= dx2;
     }
 }

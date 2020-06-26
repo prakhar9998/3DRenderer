@@ -73,7 +73,6 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
 
         // perform perspective divide: dividing every element of vector by homogenous coordinate
         perspectiveDivide(pts);
-
         Rasterizer::drawTriangle(pts, uv, tex, shader, m_PixelBuffer, m_Zbuffer);
     }
 }
