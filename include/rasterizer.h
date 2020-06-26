@@ -17,7 +17,10 @@ class Rasterizer {
 public:
     Rasterizer();
     ~Rasterizer();
-    static Vector3f barycentric(Vector2f v0, Vector2f v1, Vector2f v2, Vector2f P);
+    static Vector3f barycentric(const Vector4f& v0, const Vector4f& v1, const Vector4f& v2, const Vector2i& P);
+    static float edgeFunction(const Vector4f& a, const Vector4f& b, const Vector2i& p);
+    static float edgeFunction(const Vector4f& a, const Vector4f& b, const Vector4f& c);
+    static bool isInside(const Vector4f& v0, const Vector4f& v1, const Vector4f& v2, const Vector2i& P);
     static void setPixel(int x, int y, sf::Color color, sf::Uint8* pixelBuffer);
     static void drawLine(Vector2i p1, Vector2i p2, sf::Color color, sf::Uint8* pixelBuffer);
     static void drawTriangle(Vector4f *pts, Vector3f* uv, Texture* tex, IShader& shader, sf::Uint8* pixelBuffer, float* zbuffer);

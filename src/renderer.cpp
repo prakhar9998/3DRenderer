@@ -52,14 +52,14 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     
     const int totalFaces = mesh->getNumFaces();
     
-// #pragma omp parallel
+#pragma omp parallel
 {
     GourardShader shader;
     Vector4f pts[3];
     Vector3f uv[3];
     shader.MVP = Transformation;
 
-    // #pragma omp for schedule(dynamic)
+    #pragma omp for schedule(dynamic)
     for (int i = 0; i < totalFaces; i++) {
         
         // perfrom early backface culling. Helps speed up a bit

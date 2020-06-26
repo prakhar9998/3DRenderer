@@ -88,7 +88,22 @@ void Rasterizer::drawWireframe(Vector4f *pts, sf::Uint8* pixelBuffer) {
     drawLine(v[1], v[2], sf::Color::White, pixelBuffer);
 }
 
-Vector3f Rasterizer::barycentric(Vector2f v0, Vector2f v1, Vector2f v2, Vector2f P) {
+float Rasterizer::edgeFunction(const Vector4f& a, const Vector4f& b, const Vector2i& p) {
+    // returns whether the point p is on the right side of the edge formed by vertices a and b
+    return (a.y - b.y) * (p.x - a.x) - (a.x - b.x) * (p.y - a.y);
+}
+
+float Rasterizer::edgeFunction(const Vector4f& a, const Vector4f& b, const Vector4f& c) {
+    return (a.y - b.y) * (c.x - a.x) - (a.x - b.x) * (c.y - a.y);
+}
+
+bool Rasterizer::isInside(const Vector4f& v0, const Vector4f& v1, const Vector4f& v2, const Vector2i& P) {
+    // checks if the point P is inside the triangle formed by vertices v0, v1 and v2;
+
+    return (edgeFunction(v0, v1, P) && edgeFunction(v1, v2, P) && edgeFunction(v2, v0, P));
+}
+
+Vector3f Rasterizer::barycentric(const Vector4f& v0, const Vector4f& v1, const Vector4f& v2, const Vector2i& P) {
     // compute barycentric coordinates of the triangle represented by the given vertices
 
     float denom = ((v1.x-v0.x) * (v2.y-v0.y) - (v2.x-v0.x) * (v1.y-v0.y));
@@ -131,31 +146,36 @@ void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, 
     Vector2i pixel;
     for (pixel.x = minX; pixel.x < maxX; pixel.x++) {       // implicit conversion to int
         for (pixel.y = minY; pixel.y < maxY; pixel.y++) {
-            Vector3f barc = barycentric(
-                Vector2f(pts[0].x, pts[0].y),
-                Vector2f(pts[1].x, pts[1].y),
-                Vector2f(pts[2].x, pts[2].y),
-                Vector2f(pixel.x, pixel.y)
-            );
-
-            if (barc.x < 0 || barc.y < 0 || barc.z < 0) continue;       // the point is not inside the triangle
-            float z_dist = dot(zc, barc);        // interpolate z axis
-            float persc = dot(pc, barc);
-            Vector2f uv(0., 0.);
             
-            // interpolating perspective correct uv coords to get the texture coordinates for this pixel
+            float area = edgeFunction(pts[0], pts[1], pts[2]);
+            float w0 = edgeFunction(pts[1], pts[2], pixel);
+            float w1 = edgeFunction(pts[2], pts[0], pixel);
+            float w2 = edgeFunction(pts[0], pts[1], pixel);
 
-            uv.x = uv_coords[0].x/pts[0].w * barc[0] + uv_coords[1].x/pts[1].w * barc[1] + uv_coords[2].x/pts[2].w * barc[2];
-            uv.y = uv_coords[0].y/pts[0].w * barc[0] + uv_coords[1].y/pts[1].w * barc[1] + uv_coords[2].y/pts[2].w * barc[2];
+            // if point p is inside the triangle then proceeed with calculating barycentric coordinates
+            if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
+                Vector3f barc{w0/area, w1/area, w2/area};
+                // Vector3f barc = barycentric(pts[0], pts[1], pts[2], pixel);
 
-            uv = uv / persc;
-            sf::Color color = tex->getColor(uv.x * tex->width, uv.y * tex->height);
-            if (shader.fragment(barc, color)) continue;
-            
-            // check and update z-zbuffer
-            if (z_dist < zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH]) {
-                zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] = z_dist;
-                setPixel(pixel.x, pixel.y, color, pixelBuffer);
+                // if (barc.x < 0 || barc.y < 0 || barc.z < 0) continue;       // the point is not inside the triangle
+                float z_dist = dot(zc, barc);        // interpolate z axis
+                float persc = dot(pc, barc);
+                Vector2f uv(0., 0.);
+                
+                // interpolating perspective correct uv coords to get the texture coordinates for this pixel
+
+                uv.x = uv_coords[0].x/pts[0].w * barc[0] + uv_coords[1].x/pts[1].w * barc[1] + uv_coords[2].x/pts[2].w * barc[2];
+                uv.y = uv_coords[0].y/pts[0].w * barc[0] + uv_coords[1].y/pts[1].w * barc[1] + uv_coords[2].y/pts[2].w * barc[2];
+
+                uv = uv / persc;
+                sf::Color color = tex->getColor(uv.x * tex->width, uv.y * tex->height);
+                if (shader.fragment(barc, color)) continue;
+                
+                // check and update z-zbuffer
+                if (z_dist < zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH]) {
+                    zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH] = z_dist;
+                    setPixel(pixel.x, pixel.y, color, pixelBuffer);
+                }
             }
         }
     }
