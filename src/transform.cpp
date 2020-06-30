@@ -34,7 +34,7 @@ Matrix4f Transform::rotate(Vector3f angles) {
 
     // y-axis rotation
     float sinBeta = sin(angles.y);
-    float cosBeta = cos(angles.x);
+    float cosBeta = cos(angles.y);
 
     // z-axis rotation
     float sinGamma = sin(angles.z);
@@ -45,7 +45,7 @@ Matrix4f Transform::rotate(Vector3f angles) {
     
     R[0][0] = cosAlpha * cosBeta;
     R[0][1] = cosAlpha * sinBeta * sinGamma - sinAlpha * cosGamma;
-    R[0][1] = cosAlpha * sinBeta * cosGamma + sinAlpha * sinGamma;
+    R[0][2] = cosAlpha * sinBeta * cosGamma + sinAlpha * sinGamma;
 
     R[1][0] = sinAlpha * cosBeta;
     R[1][1] = sinAlpha * sinBeta * sinGamma + cosAlpha * cosGamma;
