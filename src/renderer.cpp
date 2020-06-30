@@ -43,28 +43,29 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     std::vector<Vector3i>& texture = mesh->getTextureIndices();
     std::vector<Vector3i>& normals = mesh->getNormalIndices();
     
-    Matrix4f Model = m_Model->getModelMatrix();
-    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 5.f, 1.f, cos(cameraRotation) * 5.f));
-    Matrix4f View = m_Camera->getViewMatrix();
-    Matrix4f Projection = m_Camera->getProjectionMatrix();
-    Matrix4f Transformation = Projection * View * Model;
-
-    
+    Matrix4f M = m_Model->getModelMatrix();
+    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 2.5, 0, cos(cameraRotation) * 2.5));
+    Matrix4f V = m_Camera->getViewMatrix();
+    Matrix4f P = m_Camera->getProjectionMatrix();
+    Matrix4f Transformation = P * V * M;
+    Matrix4f MInv = inverse(m_Model->getModelMatrix());      // world to object matrix
+    Matrix4f N = transpose(MInv);
     const int totalFaces = mesh->getNumFaces();
     
-#pragma omp parallel
+// #pragma omp parallel
 {
     GourardShader shader;
     Vector4f pts[3];
     Vector3f uv[3];
     shader.MVP = Transformation;
+    shader.N = N;
 
-    #pragma omp for schedule(dynamic)
+    // #pragma omp for schedule(dynamic)
     for (int i = 0; i < totalFaces; i++) {
         
-        // perfrom early backface culling. Helps speed up a bit
-        if (dot(m_Camera->getCameraDirection() - mesh->getVertex(vertices[i][0]), mesh->getFaceNormal(i)) < 0) continue;
-        
+        // perfrom early backface culling by checking the dot product of viewer in object space to vertex and vertex normal
+        if (dot(normalize(multVecMatrix(MInv, m_Camera->getCameraDirection()) - mesh->getVertex(vertices[i][0])), mesh->getFaceNormal(i)) < 0) continue;
+
         // run vertex shader for every vertex.
         for (int j = 0; j < 3; j++) {
             uv[j] = mesh->getTexture(texture[i][j]);
@@ -73,6 +74,7 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
 
         // perform perspective divide: dividing every element of vector by homogenous coordinate
         perspectiveDivide(pts);
+        // Rasterizer::drawWireframe(pts, m_PixelBuffer);
         Rasterizer::drawTriangle(pts, uv, tex, shader, m_PixelBuffer, m_Zbuffer);
     }
 }

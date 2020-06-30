@@ -190,6 +190,40 @@ Vector<N, Vector<N, T> > inverse(const Vector<N, Vector<N, T> >& mat) {
     return adj(mat)/d;
 }
 
+
+// multiplication for 4x4 matrix and 3x1 vector by emdedding w-component as 1 in the vector
+// helpful in numerous transformations involving multiplication of transformation matrices with 3d vectors
+template <typename T>
+Vector<3, T> multVecMatrix(const Vector<4, Vector<4, T> >& mat, const Vector<3, T>& vec) {
+    // this function takes into consideration the w coordinate and performs
+    // homogenous divide in the resulting vector
+    Vector3f ret;
+    T a, b, c, w;
+    a = vec[0] * mat[0][0] + vec[1] * mat[0][1] + vec[2] * mat[0][2] + mat[0][3];
+    b = vec[0] * mat[1][0] + vec[1] * mat[1][1] + vec[2] * mat[1][2] + mat[1][3];
+    c = vec[0] * mat[2][0] + vec[1] * mat[2][1] + vec[2] * mat[2][2] + mat[2][3];
+    w = vec[0] * mat[3][0] + vec[1] * mat[3][1] + vec[2] * mat[3][2] + mat[3][3];
+
+    ret.x = a / w;
+    ret.y = b / w;
+    ret.z = c / w;
+
+    return ret;
+}
+
+template <typename T>
+Vector<3, T> multDirMatrix(const Vector<4, Vector<4, T> >& mat, const Vector<3, T>& vec) {
+    // this function simply ignores the w dimension i.e. doesn't take into account the translation
+    
+    Vector3f ret;
+    
+    ret.x = vec[0] * mat[0][0] + vec[1] * mat[0][1] + vec[2] * mat[0][2];
+    ret.y = vec[0] * mat[1][0] + vec[1] * mat[1][1] + vec[2] * mat[1][2];
+    ret.z = vec[0] * mat[2][0] + vec[1] * mat[2][1] + vec[2] * mat[2][2];
+
+    return ret;
+}
+
 typedef Vector<3, Vector<3, int> > Matrix3i;
 typedef Vector<4, Vector<4, int> > Matrix4i;
 typedef Vector<3, Vector<3, float> > Matrix3f;
