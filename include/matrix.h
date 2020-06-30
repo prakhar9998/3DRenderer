@@ -194,7 +194,7 @@ Vector<N, Vector<N, T> > inverse(const Vector<N, Vector<N, T> >& mat) {
 // multiplication for 4x4 matrix and 3x1 vector by emdedding w-component as 1 in the vector
 // helpful in numerous transformations involving multiplication of transformation matrices with 3d vectors
 template <typename T>
-Vector<3, T> multVecMatrix(const Vector<4, Vector<4, T> >& mat, const Vector<3, T>& vec) {
+Vector<3, T> multMatrixVec(const Vector<4, Vector<4, T> >& mat, const Vector<3, T>& vec) {
     // this function takes into consideration the w coordinate and performs
     // homogenous divide in the resulting vector
     Vector3f ret;
@@ -212,7 +212,7 @@ Vector<3, T> multVecMatrix(const Vector<4, Vector<4, T> >& mat, const Vector<3, 
 }
 
 template <typename T>
-Vector<3, T> multDirMatrix(const Vector<4, Vector<4, T> >& mat, const Vector<3, T>& vec) {
+Vector<3, T> multMatrixDir(const Vector<4, Vector<4, T> >& mat, const Vector<3, T>& vec) {
     // this function simply ignores the w dimension i.e. doesn't take into account the translation
     
     Vector3f ret;

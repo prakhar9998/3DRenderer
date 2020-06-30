@@ -35,12 +35,11 @@ void Renderer::perspectiveDivide(Vector4f* verts) {
 void Renderer::renderScene(Scene& scene, float cameraRotation) {
     m_Model = scene.getModel();
     m_Camera = scene.getCamera();
-    Texture* tex = m_Model->getDiffuse();
 
     // get the required data of the mesh. 
     Mesh* mesh = m_Model->getMesh();
     std::vector<Vector3i>& vertices = mesh->getVertexIndices();
-    std::vector<Vector3i>& texture = mesh->getTextureIndices();
+    std::vector<Vector3i>& textures = mesh->getTextureIndices();
     std::vector<Vector3i>& normals = mesh->getNormalIndices();
     
     Matrix4f M = m_Model->getModelMatrix();
@@ -52,30 +51,31 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     Matrix4f N = transpose(MInv);
     const int totalFaces = mesh->getNumFaces();
     
-// #pragma omp parallel
+#pragma omp parallel
 {
     GourardShader shader;
     Vector4f pts[3];
     Vector3f uv[3];
     shader.MVP = Transformation;
     shader.N = N;
+    shader.diffuse = m_Model->getDiffuse();
 
-    // #pragma omp for schedule(dynamic)
+    #pragma omp for schedule(dynamic)
     for (int i = 0; i < totalFaces; i++) {
         
         // perfrom early backface culling by checking the dot product of viewer in object space to vertex and vertex normal
-        if (dot(normalize(multVecMatrix(MInv, m_Camera->getCameraDirection()) - mesh->getVertex(vertices[i][0])), mesh->getFaceNormal(i)) < 0) continue;
+        if (dot(normalize(multMatrixVec(MInv, m_Camera->getCameraDirection()) - mesh->getVertex(vertices[i][0])), mesh->getFaceNormal(i)) < 0) continue;
 
         // run vertex shader for every vertex.
         for (int j = 0; j < 3; j++) {
-            uv[j] = mesh->getTexture(texture[i][j]);
+            uv[j] = mesh->getTexture(textures[i][j]);
             pts[j] = shader.vertex(mesh->getVertex(vertices[i][j]), mesh->getNormal(normals[i][j]), j);
         }
 
         // perform perspective divide: dividing every element of vector by homogenous coordinate
         perspectiveDivide(pts);
         // Rasterizer::drawWireframe(pts, m_PixelBuffer);
-        Rasterizer::drawTriangle(pts, uv, tex, shader, m_PixelBuffer, m_Zbuffer);
+        Rasterizer::drawTriangle(pts, uv, shader, m_PixelBuffer, m_Zbuffer);
     }
 }
     std::fill(m_Zbuffer, m_Zbuffer + DisplayBackend::WINDOW_WIDTH*DisplayBackend::WINDOW_HEIGHT, std::numeric_limits<float>::max());

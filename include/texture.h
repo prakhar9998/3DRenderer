@@ -1,5 +1,5 @@
-#include <SFML/Graphics/Color.hpp>
 #include <string>
+#include "vector3d.h"
 
 struct Texture {
     unsigned char* image;
@@ -10,6 +10,6 @@ struct Texture {
     Texture();
     ~Texture();
 
-    sf::Color getColor(int i, int j);
+    Vector3i getColor(int i, int j);
     bool load_texture(std::string filename);
 };

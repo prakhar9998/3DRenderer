@@ -14,9 +14,8 @@
 struct IShader {
     virtual ~IShader() {}
     virtual Vector4f vertex(const Vector3f& vertex, const Vector3f& normal, int nth) = 0;
-    virtual bool fragment(const Vector3f& barycentric, sf::Color& color) = 0;
+    virtual Vector3f fragment(Vector2f uv, const Vector3f& barycentric) = 0;
 };
-
 
 // simplest and fastest shader; uses face normals to compute light values.
 struct FlatShader : IShader {
@@ -33,32 +32,34 @@ struct FlatShader : IShader {
         return MVP * gl_Vertex;
     }
 
-    bool fragment(const Vector3f& barycentric, sf::Color& color) override {
+    Vector3f fragment(Vector2f uv, const Vector3f& barycentric) override {
         assert(varying_intensity <= 1);
-        color = sf::Color(color.r * varying_intensity, color.g * varying_intensity, color.b * varying_intensity, 255);
-        return false;
+        return Vector3f{255 * varying_intensity, 255 * varying_intensity, 255 * varying_intensity};
     }
 };
-
 
 // Much better than flat shader, interpolates normal for every point and computes
 // light values for every pixel on the surface. Requires more processing that flat shader.
 struct GourardShader : IShader {
-    Matrix4f MVP;
-    Vector3f varIntensity;
-    Vector3f light = Vector3f(1.f, 0.f, 1.f);
+    Matrix4f MVP, N;
+    Vector3f varIntensity, nrm;
+    Vector3f light = normalize(Vector3f{1, 1, 1});
+    Vector3i rgb{255, 255, 255};
+    Texture* diffuse;
 
     Vector4f vertex(const Vector3f& vertex, const Vector3f& normal, int nth) override {
-        varIntensity[nth] = std::max(0.f, dot(normal, light));
+        nrm = multMatrixDir(N, normal);     // correct normal
+        varIntensity[nth] = std::max(0.f, dot(nrm, light));
         Vector4f gl_Vertex = Vector4f(vertex.x, vertex.y, vertex.z, 1.f);
         return MVP * gl_Vertex;
     }
 
-    bool fragment(const Vector3f& barycentric, sf::Color& color) override {
+    Vector3f fragment(Vector2f uv, const Vector3f& barycentric) override {
         float intensity = dot(varIntensity, barycentric);
-        color = sf::Color(color.r * intensity, color.g * intensity, color.b * intensity, 255);
-        return false;
+        Vector3i color = diffuse->getColor(uv.x * diffuse->width, uv.y * diffuse->height);
+        return Vector3f(color.x, color.y, color.z) * intensity;
     }
 };
+
 
 #endif      // SHADER_H

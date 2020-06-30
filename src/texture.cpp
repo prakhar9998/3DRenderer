@@ -8,12 +8,12 @@ Texture::Texture() { image = nullptr; }
 
 Texture::~Texture() { delete [] image; }
 
-sf::Color Texture::getColor(int i, int j) {
-    if (!image) return sf::Color(0, 0, 0, 0xff);
+Vector3i Texture::getColor(int i, int j) {
+    if (!image) return Vector3i(0, 0, 0);
     i = i % width;
     j = j % height;
     unsigned char* pixelOffset = image + (i + j * width) * channels;
-    return sf::Color(pixelOffset[0], pixelOffset[1], pixelOffset[2], 0xff);
+    return Vector3i(pixelOffset[0], pixelOffset[1], pixelOffset[2]);
 }
 
 bool Texture::load_texture(std::string filename) {

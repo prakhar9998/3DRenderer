@@ -119,7 +119,7 @@ Vector3f Rasterizer::barycentric(const Vector4f& v0, const Vector4f& v1, const V
     return Vector3f(1.f - u - v, u, v);
 }
 
-void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, IShader &shader, sf::Uint8* pixelBuffer, float* zbuffer) {
+void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, IShader &shader, sf::Uint8* pixelBuffer, float* zbuffer) {
 
     Vector3f zc = Vector3f(pts[0].z, pts[1].z, pts[2].z);
     Vector3f pc = Vector3f(1./pts[0].w, 1./pts[1].w, 1./pts[2].w);
@@ -188,8 +188,8 @@ void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, Texture* tex, 
                 uv.y = uv_coords[0].y/pts[0].w * barc[0] + uv_coords[1].y/pts[1].w * barc[1] + uv_coords[2].y/pts[2].w * barc[2];
 
                 uv = uv / persc;
-                sf::Color color = tex->getColor(uv.x * tex->width, uv.y * tex->height);
-                if (shader.fragment(barc, color)) continue;
+                Vector3f rgb = shader.fragment(uv, barc);
+                sf::Color color = sf::Color(rgb.x, rgb.y, rgb.z, 0xff);
                 
                 // check and update z-zbuffer
                 if (z_dist < zbuffer[pixel.x + pixel.y*DisplayBackend::WINDOW_WIDTH]) {

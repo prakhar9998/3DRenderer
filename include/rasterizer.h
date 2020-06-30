@@ -23,7 +23,7 @@ public:
     static bool isInside(const Vector4f& v0, const Vector4f& v1, const Vector4f& v2, const Vector2i& P);
     static void setPixel(int x, int y, sf::Color color, sf::Uint8* pixelBuffer);
     static void drawLine(Vector2i p1, Vector2i p2, sf::Color color, sf::Uint8* pixelBuffer);
-    static void drawTriangle(Vector4f *pts, Vector3f* uv, Texture* tex, IShader& shader, sf::Uint8* pixelBuffer, float* zbuffer);
+    static void drawTriangle(Vector4f *pts, Vector3f* uv, IShader& shader, sf::Uint8* pixelBuffer, float* zbuffer);
     static void drawWireframe(Vector4f *pts, sf::Uint8* pixelBuffer);
     static Matrix4f Viewport;
 };

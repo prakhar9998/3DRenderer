@@ -25,18 +25,18 @@ void Engine::run() {
     // TODO: Move this into scene loader, which loads all the models and cams by itself.
 
     //  the files have to be changed here manually for now, later I will use cmdline arguments for this
-    Model* teapot = new Model("./test_models/bs_smile.obj");
-    teapot->loadDiffuse("./test_models/bs_smile_diffuse.png");
-    teapot->transformModel(
-        Vector3f(0., 0., 0.),
-        Vector3f(0., 0., 0.),
-        Vector3f(2.5, 2.5, 2.5)
+    Model* model = new Model("./test_models/bs_smile.obj");
+    model->loadDiffuse("./test_models/bs_smile_diffuse.png");
+    model->transformModel(
+        Vector3f(0, 0, 0),
+        Vector3f(0, 0, 0),
+        Vector3f(1, 1, 1)
     );
 
     Camera* camera = new Camera(Vector3f(0., 0., -3.f), Vector3f(0., 0., 0.));
 
     Scene scene;
-    scene.loadModelInScene(teapot);
+    scene.loadModelInScene(model);
     scene.loadCameraInScene(camera);
 
     Renderer renderer;
@@ -58,5 +58,5 @@ void Engine::run() {
     }
 
     delete camera;
-    delete teapot;
+    delete model;
 }
