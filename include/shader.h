@@ -4,8 +4,6 @@
 #include "vector3d.h"
 #include "matrix.h"
 
-#include <SFML/Graphics/Color.hpp>
-
 /**
  * This shader class will change a lot in future, now this is just
  * to get a rough idea of how I will integrate shaders in the code.
@@ -40,15 +38,18 @@ struct FlatShader : IShader {
 
 // Much better than flat shader, interpolates normal for every point and computes
 // light values for every pixel on the surface. Requires more processing that flat shader.
-struct GourardShader : IShader {
+// This implementation uses phong reflection model and gourard shading.
+struct GouraudShader : IShader {
     Matrix4f MVP, N;
-    Vector3f varIntensity, nrm;
+    Vector3f varIntensity, varSpec, nrm;
     Vector3f light = normalize(Vector3f{1, 1, 1});
     Vector3i rgb{255, 255, 255};
-    Texture* diffuse;
+    Texture* diffuse_map;
 
     Vector4f vertex(const Vector3f& vertex, const Vector3f& normal, int nth) override {
         nrm = multMatrixDir(N, normal);     // correct normal
+        Vector3f reflection = normalize(nrm * (dot(light, nrm) * 2.f) - light);
+        varSpec[nth] = pow(std::max(reflection.z, 0.0f), 32);
         varIntensity[nth] = std::max(0.f, dot(nrm, light));
         Vector4f gl_Vertex = Vector4f(vertex.x, vertex.y, vertex.z, 1.f);
         return MVP * gl_Vertex;
@@ -56,10 +57,14 @@ struct GourardShader : IShader {
 
     Vector3f fragment(Vector2f uv, const Vector3f& barycentric) override {
         float intensity = dot(varIntensity, barycentric);
-        Vector3i color = diffuse->getColor(uv.x * diffuse->width, uv.y * diffuse->height);
-        return Vector3f(color.x, color.y, color.z) * intensity;
+        float spec = dot(varSpec, barycentric);
+        float a = intensity + .6 * spec;
+        Vector3i color = diffuse_map->getColor(uv.x * diffuse_map->width, uv.y * diffuse_map->height);
+        float r = 5 + color.x*(intensity + .6 * spec);
+        float g = 5 + color.y*(intensity + .6 * spec);
+        float b = 5 + color.z*(intensity + .6 * spec);
+        return Vector3f(r, g, b);
     }
 };
-
 
 #endif      // SHADER_H

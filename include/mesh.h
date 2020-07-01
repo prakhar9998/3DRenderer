@@ -20,8 +20,13 @@ private:
     std::vector<Vector3i> m_TextureIndices;
     std::vector<Vector3i> m_NormalIndices;
 
+    // tangent basis vectors
+    std::vector<Vector3f> m_Tangents;
+    std::vector<Vector3f> m_Bitangents;
+
 private:
-    void calculateFaceNormals();
+    void computeFaceNormals();
+    void computeTangentBasis();
 
 public:
     Mesh();

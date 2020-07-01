@@ -53,12 +53,12 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     
 #pragma omp parallel
 {
-    GourardShader shader;
+    GouraudShader shader;
     Vector4f pts[3];
     Vector3f uv[3];
     shader.MVP = Transformation;
     shader.N = N;
-    shader.diffuse = m_Model->getDiffuse();
+    shader.diffuse_map = m_Model->getDiffuse();
 
     #pragma omp for schedule(dynamic)
     for (int i = 0; i < totalFaces; i++) {

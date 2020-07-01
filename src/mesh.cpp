@@ -11,14 +11,42 @@ Mesh::~Mesh() {}
 int Mesh::getNumFaces() { return m_NumFaces; }
 int Mesh::getNumVertices() { return m_NumVertices; }
 
-void Mesh::calculateFaceNormals() {
+void Mesh::computeTangentBasis() {
+    // computes the tangent basis represented by T, B and N for normal mapping of textures.
+    Vector3f uv[3];        // texture coordinates
+    Vector3f v[3];         // vertex coordiantes
+    for (int i = 0; i < m_NumFaces; i++) {
+        for (int j = 0; j < 3; j++) {
+            v[j] = m_Vertices[m_VertexIndices[i][j]];
+            uv[j] = m_Vertices[m_VertexIndices[i][j]];
+        }
+
+        Vector3f edge1 = v[1] - v[0];
+        Vector3f edge2 = v[2] - v[0];
+
+        Vector3f deltaUV1 = uv[1] - uv[0];
+        Vector3f deltaUV2 = uv[2] - uv[0];
+
+        // T = (E1 * deltaV2 - E2 * deltaV1) / deltaU1*deltaV2 - deltaU2*deltaV1;
+        // B = (-E1 * deltaU2 - E2 * deltaU1)/ deltaU1*deltaV2 - deltaU2*deltaV1;
+
+        float denom = 1 / ((deltaUV1.x * deltaUV2.y) - (deltaUV2.y * deltaUV2.x));
+        Vector3f tangent = (edge1 * deltaUV2.y - edge2 * deltaUV1.x) * denom;
+        Vector3f bitangent = (edge2 * deltaUV1.x - edge1 * deltaUV2.x) * denom;
+            
+        m_Tangents.push_back(tangent);
+        m_Bitangents.push_back(bitangent);
+    }
+}
+
+void Mesh::computeFaceNormals() {
     // pre-calculates surface normal for every face in the mesh for techniques likes backface culling
     Vector3f tmp[3];
     for (int i = 0; i < m_NumFaces; i++) {
         for (int j = 0; j < 3; j++) {
             tmp[j] = m_Vertices[m_VertexIndices[i][j]];
         }
-        m_faceNormal.push_back(normalize(cross(tmp[1]-tmp[0], tmp[2]-tmp[0])));
+        m_faceNormal.push_back(normalize(cross(tmp[1] - tmp[0], tmp[2] - tmp[0])));
     }
 }
 
@@ -90,7 +118,9 @@ bool Mesh::loadFile(std::string path) {
             m_NumFaces++;
         }
     }
-    calculateFaceNormals();        
+
+    // for backface culling and flat shading
+    computeFaceNormals();
 
     return true;
 }
