@@ -43,7 +43,7 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     std::vector<Vector3i>& normals = mesh->getNormalIndices();
     
     Matrix4f M = m_Model->getModelMatrix();
-    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 2.5, 0, cos(cameraRotation) * 2.5));
+    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 4, 0, cos(cameraRotation) * 4));
     Matrix4f V = m_Camera->getViewMatrix();
     Matrix4f P = m_Camera->getProjectionMatrix();
     Matrix4f Transformation = P * V * M;
@@ -69,7 +69,7 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
         // run vertex shader for every vertex.
         for (int j = 0; j < 3; j++) {
             uv[j] = mesh->getTexture(textures[i][j]);
-            pts[j] = shader.vertex(mesh->getVertex(vertices[i][j]), mesh->getNormal(normals[i][j]), j);
+            pts[j] = shader.vertex(mesh->getVertex(vertices[i][j]), mesh->getNormal(normals[i][j]), mesh->getTexture(textures[i][j]), j);
         }
 
         // perform perspective divide: dividing every element of vector by homogenous coordinate

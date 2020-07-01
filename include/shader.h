@@ -11,8 +11,8 @@
 
 struct IShader {
     virtual ~IShader() {}
-    virtual Vector4f vertex(const Vector3f& vertex, const Vector3f& normal, int nth) = 0;
-    virtual Vector3f fragment(Vector2f uv, const Vector3f& barycentric) = 0;
+    virtual Vector4f vertex(const Vector3f& vertex, const Vector3f& normal, const Vector3f& texture, int nth) = 0;
+    virtual Vector3f fragment(const Vector3f& barycentric) = 0;
 };
 
 // simplest and fastest shader; uses face normals to compute light values.
@@ -23,14 +23,14 @@ struct FlatShader : IShader {
     // TODO: Remove light and add it to the scene class.
     // I am declaring it here for testing purposes.;
     
-    Vector4f vertex(const Vector3f& vertex, const Vector3f& normal, int nth) override {
+    Vector4f vertex(const Vector3f& vertex, const Vector3f& normal, const Vector3f& texture, int nth) override {
         light = Vector3f(0.f, 0.f, 1.f);
         varying_intensity = std::max(0.f, dot(normal, light));
         Vector4f gl_Vertex = Vector4f(vertex.x, vertex.y, vertex.z, 1.f);
         return MVP * gl_Vertex;
     }
 
-    Vector3f fragment(Vector2f uv, const Vector3f& barycentric) override {
+    Vector3f fragment(const Vector3f& barycentric) override {
         assert(varying_intensity <= 1);
         return Vector3f{255 * varying_intensity, 255 * varying_intensity, 255 * varying_intensity};
     }
@@ -41,24 +41,29 @@ struct FlatShader : IShader {
 // This implementation uses phong reflection model and gourard shading.
 struct GouraudShader : IShader {
     Matrix4f MVP, N;
-    Vector3f varIntensity, varSpec, nrm;
+    Vector3f varIntensity, varSpec, varUV[3], nrm;
     Vector3f light = normalize(Vector3f{1, 1, 1});
     Vector3i rgb{255, 255, 255};
     Texture* diffuse_map;
 
-    Vector4f vertex(const Vector3f& vertex, const Vector3f& normal, int nth) override {
+    Vector4f vertex(const Vector3f& vertex, const Vector3f& normal, const Vector3f& texture, int nth) override {
         nrm = multMatrixDir(N, normal);     // correct normal
         Vector3f reflection = normalize(nrm * (dot(light, nrm) * 2.f) - light);
+        varUV[nth] = texture;
         varSpec[nth] = pow(std::max(reflection.z, 0.0f), 32);
         varIntensity[nth] = std::max(0.f, dot(nrm, light));
         Vector4f gl_Vertex = Vector4f(vertex.x, vertex.y, vertex.z, 1.f);
         return MVP * gl_Vertex;
     }
 
-    Vector3f fragment(Vector2f uv, const Vector3f& barycentric) override {
+    Vector3f fragment(const Vector3f& barycentric) override {
+        // interpolating attributes
+        Vector2f uv;
+        uv.x = varUV[0].x * barycentric[0] + varUV[1].x * barycentric[1] + varUV[2].x * barycentric[2];
+        uv.y = varUV[0].y * barycentric[0] + varUV[1].y * barycentric[1] + varUV[2].y * barycentric[2];
         float intensity = dot(varIntensity, barycentric);
         float spec = dot(varSpec, barycentric);
-        float a = intensity + .6 * spec;
+        
         Vector3i color = diffuse_map->getColor(uv.x * diffuse_map->width, uv.y * diffuse_map->height);
         float r = 5 + color.x*(intensity + .6 * spec);
         float g = 5 + color.y*(intensity + .6 * spec);

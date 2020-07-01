@@ -177,21 +177,16 @@ void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, IShader &shade
                 Vector3f barc{w0/area, w1/area, w2/area};
                 // Vector3f barc = barycentric(pts[0], pts[1], pts[2], pixel);
 
-                // if (barc.x < 0 || barc.y < 0 || barc.z < 0) continue;       // the point is not inside the triangle
+                if (barc.x < 0 || barc.y < 0 || barc.z < 0) continue;       // the point is not inside the triangle
                 float z_dist = dot(zc, barc);        // interpolate z axis
-                float oneOverpersc = 1/dot(pc, barc);
-                Vector2f uv(0., 0.);
+                float oneOverpersc = 1/dot(pc, barc);       // interpolating inverse w coordinate
                 
-                // get perspective correct barycentric coordinates
+                // calculate perspective correct barycentric coordinates
                 barc[0] = barc[0] * pc[0] * oneOverpersc;
                 barc[1] = barc[1] * pc[1] * oneOverpersc;
                 barc[2] = barc[2] * pc[2] * oneOverpersc;
 
-                uv.x = uv_coords[0].x * barc[0] + uv_coords[1].x * barc[1] + uv_coords[2].x * barc[2];
-                uv.y = uv_coords[0].y * barc[0] + uv_coords[1].y * barc[1] + uv_coords[2].y * barc[2];
-
-                // uv = uv / persc;
-                Vector3f rgb = shader.fragment(uv, barc);
+                Vector3f rgb = shader.fragment(barc);
                 sf::Color color = sf::Color(rgb.x, rgb.y, rgb.z, 0xff);
                 
                 // check and update z-zbuffer
