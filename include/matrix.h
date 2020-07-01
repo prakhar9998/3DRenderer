@@ -204,9 +204,9 @@ Vector<3, T> multMatrixVec(const Vector<4, Vector<4, T> >& mat, const Vector<3, 
     c = vec[0] * mat[2][0] + vec[1] * mat[2][1] + vec[2] * mat[2][2] + mat[2][3];
     w = vec[0] * mat[3][0] + vec[1] * mat[3][1] + vec[2] * mat[3][2] + mat[3][3];
 
-    ret.x = a / w;
-    ret.y = b / w;
-    ret.z = c / w;
+    ret.x = a/w;
+    ret.y = b/w;
+    ret.z = c/w;
 
     return ret;
 }

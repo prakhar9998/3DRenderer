@@ -40,18 +40,24 @@ struct FlatShader : IShader {
 // light values for every pixel on the surface. Requires more processing that flat shader.
 // This implementation uses phong reflection model and gourard shading.
 struct GouraudShader : IShader {
-    Matrix4f MVP, N;
-    Vector3f varIntensity, varSpec, varUV[3], nrm;
-    Vector3f light = normalize(Vector3f{1, 1, 1});
+    Matrix4f MVP, N, V, MV;
+    Vector3f varIntensity, varSpec, varUV[3], nrm, viewDir;
+    Vector3f light;
     Vector3i rgb{255, 255, 255};
     Texture* diffuse_map;
 
     Vector4f vertex(const Vector3f& vertex, const Vector3f& normal, const Vector3f& texture, int nth) override {
-        nrm = multMatrixDir(N, normal);     // correct normal
+        nrm = normalize(multMatrixDir(N, normal));     // correct normal
+        light = normalize(Vector3f{1, 1, 1});
+        light = normalize(multMatrixDir(V, light));
+        viewDir = normalize(multMatrixVec(MV, vertex));
+
         Vector3f reflection = normalize(nrm * (dot(light, nrm) * 2.f) - light);
+
         varUV[nth] = texture;
-        varSpec[nth] = pow(std::max(reflection.z, 0.0f), 32);
+        varSpec[nth] = pow(std::max(dot(normalize(light-viewDir), reflection), 0.0f), 32);
         varIntensity[nth] = std::max(0.f, dot(nrm, light));
+
         Vector4f gl_Vertex = Vector4f(vertex.x, vertex.y, vertex.z, 1.f);
         return MVP * gl_Vertex;
     }
@@ -64,10 +70,13 @@ struct GouraudShader : IShader {
         float intensity = dot(varIntensity, barycentric);
         float spec = dot(varSpec, barycentric);
         
+        float a = (.1f + intensity + .6f * spec);       // multiplier ambient + diffuse + specular
+
         Vector3i color = diffuse_map->getColor(uv.x * diffuse_map->width, uv.y * diffuse_map->height);
-        float r = 5 + color.x*(intensity + .6 * spec);
-        float g = 5 + color.y*(intensity + .6 * spec);
-        float b = 5 + color.z*(intensity + .6 * spec);
+        float r = std::min(color.x*a, 255.f);
+        float g = std::min(color.y*a, 255.f);
+        float b = std::min(color.z*a, 255.f);
+        // std::cout << r << " " << g << " " << b << std::endl;
         return Vector3f(r, g, b);
     }
 };

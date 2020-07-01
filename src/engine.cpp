@@ -25,8 +25,8 @@ void Engine::run() {
     // TODO: Move this into scene loader, which loads all the models and cams by itself.
 
     //  the files have to be changed here manually for now, later I will use cmdline arguments for this
-    Model* model = new Model("./test_models/leather_shoes.obj");
-    model->loadDiffuse("./test_models/leather_shoes_diffuse.png");
+    Model* model = new Model("./test_models/bs_smile.obj");
+    model->loadDiffuse("./test_models/bs_smile_diffuse.png");
     model->transformModel(
         Vector3f(0, 0, 0),
         Vector3f(0, 0, 0),

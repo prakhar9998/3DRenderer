@@ -43,12 +43,10 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     std::vector<Vector3i>& normals = mesh->getNormalIndices();
     
     Matrix4f M = m_Model->getModelMatrix();
-    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 4, 0, cos(cameraRotation) * 4));
-    Matrix4f V = m_Camera->getViewMatrix();
-    Matrix4f P = m_Camera->getProjectionMatrix();
-    Matrix4f Transformation = P * V * M;
     Matrix4f MInv = inverse(m_Model->getModelMatrix());      // world to object matrix
-    Matrix4f N = transpose(MInv);
+
+    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 3, 0, cos(cameraRotation) * 3));
+
     const int totalFaces = mesh->getNumFaces();
     
 #pragma omp parallel
@@ -56,8 +54,11 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     GouraudShader shader;
     Vector4f pts[3];
     Vector3f uv[3];
-    shader.MVP = Transformation;
-    shader.N = N;
+    shader.V = m_Camera->getViewMatrix();
+    shader.MV = shader.V * M;
+    shader.MVP = m_Camera->getProjectionMatrix() * shader.MV;
+    shader.N = transpose(inverse(shader.MV));
+
     shader.diffuse_map = m_Model->getDiffuse();
 
     #pragma omp for schedule(dynamic)
@@ -68,14 +69,13 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
 
         // run vertex shader for every vertex.
         for (int j = 0; j < 3; j++) {
-            uv[j] = mesh->getTexture(textures[i][j]);
             pts[j] = shader.vertex(mesh->getVertex(vertices[i][j]), mesh->getNormal(normals[i][j]), mesh->getTexture(textures[i][j]), j);
         }
 
         // perform perspective divide: dividing every element of vector by homogenous coordinate
         perspectiveDivide(pts);
         // Rasterizer::drawWireframe(pts, m_PixelBuffer);
-        Rasterizer::drawTriangle(pts, uv, shader, m_PixelBuffer, m_Zbuffer);
+        Rasterizer::drawTriangle(pts, shader, m_PixelBuffer, m_Zbuffer);
     }
 }
     std::fill(m_Zbuffer, m_Zbuffer + DisplayBackend::WINDOW_WIDTH*DisplayBackend::WINDOW_HEIGHT, std::numeric_limits<float>::max());

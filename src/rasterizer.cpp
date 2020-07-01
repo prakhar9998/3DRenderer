@@ -119,7 +119,7 @@ Vector3f Rasterizer::barycentric(const Vector4f& v0, const Vector4f& v1, const V
     return Vector3f(1.f - u - v, u, v);
 }
 
-void Rasterizer::drawTriangle(Vector4f *pts, Vector3f* uv_coords, IShader &shader, sf::Uint8* pixelBuffer, float* zbuffer) {
+void Rasterizer::drawTriangle(Vector4f *pts, IShader &shader, sf::Uint8* pixelBuffer, float* zbuffer) {
 
     Vector3f zc = Vector3f(pts[0].z, pts[1].z, pts[2].z);
     Vector3f pc = Vector3f(1./pts[0].w, 1./pts[1].w, 1./pts[2].w);
