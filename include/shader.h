@@ -43,7 +43,6 @@ struct GouraudShader : IShader {
     Matrix4f MVP, N, V, MV;
     Vector3f varIntensity, varSpec, varUV[3], nrm, viewDir;
     Vector3f light;
-    Vector3i rgb{255, 255, 255};
     Texture* diffuse_map;
 
     Vector4f vertex(const Vector3f& vertex, const Vector3f& normal, const Vector3f& texture, int nth) override {
@@ -69,7 +68,7 @@ struct GouraudShader : IShader {
         uv.y = varUV[0].y * barycentric[0] + varUV[1].y * barycentric[1] + varUV[2].y * barycentric[2];
         float intensity = dot(varIntensity, barycentric);
         float spec = dot(varSpec, barycentric);
-        
+
         float a = (.1f + intensity + .6f * spec);       // multiplier ambient + diffuse + specular
 
         Vector3i color = diffuse_map->getColor(uv.x * diffuse_map->width, uv.y * diffuse_map->height);
@@ -77,6 +76,67 @@ struct GouraudShader : IShader {
         float g = std::min(color.y*a, 255.f);
         float b = std::min(color.z*a, 255.f);
         // std::cout << r << " " << g << " " << b << std::endl;
+        return Vector3f(r, g, b);
+    }
+};
+
+// calculate attributes at every fragment as opposed to only in vertex by
+// interpolating the normals in fragment shader and then calculating lighting.
+// this shader uses Phong Shading and Phong reflection model
+struct PhongShader : IShader {
+    Matrix4f MVP, N, V, MV;
+    Vector3f varNormal[3], varUV[3], varPos[3];        // varying attributes, set by vertex shader, used by fragment shader
+    Vector3f light;                         // light pos
+
+    Texture* diffuse_map;                   // textures to use for mapping
+
+    Vector4f vertex(const Vector3f& vertex, const Vector3f& normal, const Vector3f& texture, int nth) {
+        varNormal[nth] = normalize(multMatrixDir(N, normal));      // correct normal in view space
+        varUV[nth] = texture;
+        varPos[nth] = normalize(multMatrixVec(MV, vertex));
+
+        // setting light position. Later it'll be as an argument in vertex shader.
+        light = normalize(Vector3f{1, 1, 1});
+        light = normalize(multMatrixDir(V, light));     // light in view space
+
+        Vector4f gl_Vertex = Vector4f(vertex.x, vertex.y, vertex.z, 1);
+
+        return MVP * gl_Vertex;
+    }
+
+    Vector3f fragment(const Vector3f& barycentric) {
+        Vector3f nrm, uv, viewDir;
+        // interpolating normal for every fragment
+        nrm.x = varNormal[0].x * barycentric[0] + varNormal[1].x * barycentric[1] + varNormal[2].x * barycentric[2];
+        nrm.y = varNormal[0].y * barycentric[0] + varNormal[1].y * barycentric[1] + varNormal[2].y * barycentric[2];
+        nrm.z = varNormal[0].z * barycentric[0] + varNormal[1].z * barycentric[1] + varNormal[2].z * barycentric[2];
+
+        // interpolating uv coordinates
+        uv.x = varUV[0].x * barycentric[0] + varUV[1].x * barycentric[1] + varUV[2].x * barycentric[2];
+        uv.y = varUV[0].y * barycentric[0] + varUV[1].y * barycentric[1] + varUV[2].y * barycentric[2];
+
+        // interpolating fragment position
+        viewDir.x = varPos[0].x * barycentric[0] + varPos[1].x * barycentric[0] + varPos[2].x * barycentric[2];
+        viewDir.y = varPos[0].y * barycentric[0] + varPos[1].y * barycentric[0] + varPos[2].y * barycentric[2];
+        viewDir.z = varPos[0].z * barycentric[0] + varPos[1].z * barycentric[0] + varPos[2].z * barycentric[2];
+
+        // setting up the necessary vectors for phong reflection
+        Vector3f reflection = normalize(nrm * (dot(light, nrm) * 2.f) - light);
+        viewDir = normalize(viewDir);
+
+        // calculating specular and diffuse values
+        float spec = pow(std::max(dot(normalize(light-viewDir), reflection), 0.f), 32);
+        float diff = std::max(0.0f, dot(nrm, light));
+
+        uv.x *= diffuse_map->width;
+        uv.y *= diffuse_map->height;
+        Vector3i color = diffuse_map->getColor(uv.x, uv.y);
+
+        // setting colors
+        float r = std::min<float>(color.x * (.1 + diff + .6*spec), 255);
+        float g = std::min<float>(color.y * (.1 + diff + .6*spec), 255);
+        float b = std::min<float>(color.z * (.1 + diff + .6*spec), 255);
+
         return Vector3f(r, g, b);
     }
 };

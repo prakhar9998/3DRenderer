@@ -51,14 +51,13 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     
 #pragma omp parallel
 {
-    GouraudShader shader;
+    PhongShader shader;
     Vector4f pts[3];
     Vector3f uv[3];
     shader.V = m_Camera->getViewMatrix();
     shader.MV = shader.V * M;
     shader.MVP = m_Camera->getProjectionMatrix() * shader.MV;
     shader.N = transpose(inverse(shader.MV));
-
     shader.diffuse_map = m_Model->getDiffuse();
 
     #pragma omp for schedule(dynamic)
