@@ -26,6 +26,13 @@ This project is heavily inspired from [Tinyrenderer]. I created this to get a de
 ![Fire hydrant](https://i.ibb.co/V2N0CVz/fire-hydrant.png "Fire hydrant")
 ![Leather Shoes](https://i.ibb.co/8X2TXHv/leather-shoes.png "Leather Shoes")
 
+# Todo features
+* Add Scene loader for loading multiple objects
+* Camera control in every directions (currently it has only orbiting controls)
+* PBR Shading
+* Ambient Occlusion
+* Shadows
+
 ## References
 * [Tinyrenderer][tinyrenderer]  
 * [Scratchapixel 2.0][scratchapixel]
