@@ -8,6 +8,7 @@ Model::Model() : m_filepath("teapot.obj") {
         std::cout << "Error loading " << m_filepath << std::endl;
     }
     m_Diffuse = new Texture;
+    m_Normal = new Texture;
 }
 
 Model::Model(std::string path) : m_filepath(path) {
@@ -17,6 +18,7 @@ Model::Model(std::string path) : m_filepath(path) {
         std::cout << "Error loading " << path << std::endl;
     }
     m_Diffuse = new Texture;
+    m_Normal = new Texture;
 }
 
 Model::~Model() {
@@ -42,6 +44,11 @@ Mesh* Model::getMesh() {
 }
 
 Texture* Model::getDiffuse() { return m_Diffuse; }
+Texture* Model::getNormal() { return m_Normal; }
+
+void Model::loadNormal(std::string filename) {
+    m_Normal->load_texture(filename);
+}
 
 void Model::loadDiffuse(std::string filename) {
     m_Diffuse->load_texture(filename);

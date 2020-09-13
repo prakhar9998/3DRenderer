@@ -45,20 +45,23 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
     Matrix4f M = m_Model->getModelMatrix();
     Matrix4f MInv = inverse(m_Model->getModelMatrix());      // world to object matrix
 
-    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 3, 0, cos(cameraRotation) * 3));
+    m_Camera->setPosition(Vector3f(sin(cameraRotation) * 2, 0, cos(cameraRotation) * 2));
 
     const int totalFaces = mesh->getNumFaces();
     
 #pragma omp parallel
 {
-    PhongShader shader;
+    NormalMap shader;
     Vector4f pts[3];
     Vector3f uv[3];
     shader.V = m_Camera->getViewMatrix();
     shader.MV = shader.V * M;
     shader.MVP = m_Camera->getProjectionMatrix() * shader.MV;
-    shader.N = transpose(inverse(shader.MV));
+    shader.M = M;
+    shader.N = transpose(inverse(shader.M));
     shader.diffuse_map = m_Model->getDiffuse();
+    shader.normal_map = m_Model->getNormal();
+    shader.cameraPos = m_Camera->getCameraDirection();
 
     #pragma omp for schedule(dynamic)
     for (int i = 0; i < totalFaces; i++) {
@@ -68,15 +71,16 @@ void Renderer::renderScene(Scene& scene, float cameraRotation) {
 
         // run vertex shader for every vertex.
         for (int j = 0; j < 3; j++) {
-            pts[j] = shader.vertex(mesh->getVertex(vertices[i][j]), mesh->getNormal(normals[i][j]), mesh->getTexture(textures[i][j]), j);
+            pts[j] = shader.vertex(mesh->getVertex(vertices[i][j]), mesh->getNormal(normals[i][j]), mesh->getTexture(textures[i][j]),
+                                    mesh->getTangent(vertices[i][j]), mesh->getBitangent(vertices[i][j]), j);
         }
 
         // perform perspective divide: dividing every element of vector by homogenous coordinate
         perspectiveDivide(pts);
-        // Rasterizer::drawWireframe(pts, m_PixelBuffer);
         Rasterizer::drawTriangle(pts, shader, m_PixelBuffer, m_Zbuffer);
     }
 }
+    // clear the z-buffer
     std::fill(m_Zbuffer, m_Zbuffer + DisplayBackend::WINDOW_WIDTH*DisplayBackend::WINDOW_HEIGHT, std::numeric_limits<float>::max());
 }
 

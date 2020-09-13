@@ -4,6 +4,7 @@
 #include <sstream>
 #include <limits>
 #include <math.h>
+#include <vector>
 
 Mesh::Mesh() : m_NumVertices(0), m_NumFaces(0) {};
 Mesh::~Mesh() {}
@@ -11,14 +12,69 @@ Mesh::~Mesh() {}
 int Mesh::getNumFaces() { return m_NumFaces; }
 int Mesh::getNumVertices() { return m_NumVertices; }
 
-void Mesh::computeTangentBasis() {
+void Mesh::computeFaceList() {
+    // computes the list of all faces which a vertex is forming and stores it 
+    // as a map from the vertex index to the vector of faces it is forming.
+    // required for calculating smooth per vertex tangent space basis.
+
+    Vector3i indices;
+    for (int i = 0; i < m_NumFaces; i++) {
+        indices = m_VertexIndices[i];
+        for (int j = 0; j < 3; j++) {
+            if (m_FaceList.find(indices[j]) != m_FaceList.end()) {
+                // index is seen for the first time
+                m_FaceList.insert({indices[j], std::vector<int>{i}});
+            }
+            else m_FaceList[indices[j]].push_back(i);
+        }
+    }
+}
+
+void Mesh::computeTangentVertex() {
+    computeFaceList();
+
+    // computes TBN for every vertex in the mesh
+    Vector3i face_idxs;
+    Vector3f T(0, 0, 0), B(0, 0, 0), N(0, 0, 0);
+
+    int faceCount;      // number of faces a vertex in included in
+
+    for (int i = 0; i < m_NumVertices; i++) {
+        faceCount = 0;
+
+        // for every vertex (index i) calculate the corresponding tanget and bitangent
+        for (auto ele : m_FaceList[i]) {
+             T = T + m_FaceTangents[ele];
+            B = B + m_FaceBitangents[ele];
+            
+            ++faceCount;
+        }
+
+        if (faceCount > 0) {
+            T = T / (float)faceCount;
+            B = B / (float)faceCount;
+            N = N / (float)faceCount;
+            normalize(T);
+            normalize(B);
+            normalize(N);
+
+            // tangent and bitangent for ith vertex.
+            m_Tangents.push_back(T);
+            m_Bitangents.push_back(B);
+        }
+        T.x = 0; T.y = 0; T.z = 0;
+        B.x = 0; B.y = 0; B.z = 0;
+    }
+}
+
+void Mesh::computeTangentFace() {
     // computes the tangent basis represented by T, B and N for normal mapping of textures.
     Vector3f uv[3];        // texture coordinates
     Vector3f v[3];         // vertex coordiantes
     for (int i = 0; i < m_NumFaces; i++) {
         for (int j = 0; j < 3; j++) {
             v[j] = m_Vertices[m_VertexIndices[i][j]];
-            uv[j] = m_Vertices[m_VertexIndices[i][j]];
+            uv[j] = m_Textures[m_TextureIndices[i][j]];
         }
 
         Vector3f edge1 = v[1] - v[0];
@@ -30,12 +86,12 @@ void Mesh::computeTangentBasis() {
         // T = (E1 * deltaV2 - E2 * deltaV1) / deltaU1*deltaV2 - deltaU2*deltaV1;
         // B = (-E1 * deltaU2 - E2 * deltaU1)/ deltaU1*deltaV2 - deltaU2*deltaV1;
 
-        float denom = 1 / ((deltaUV1.x * deltaUV2.y) - (deltaUV2.y * deltaUV2.x));
-        Vector3f tangent = (edge1 * deltaUV2.y - edge2 * deltaUV1.x) * denom;
+        float denom = 1 / ((deltaUV1.x * deltaUV2.y) - (deltaUV1.y * deltaUV2.x));
+        Vector3f tangent = (edge1 * deltaUV2.y - edge2 * deltaUV1.y) * denom;
         Vector3f bitangent = (edge2 * deltaUV1.x - edge1 * deltaUV2.x) * denom;
             
-        m_Tangents.push_back(tangent);
-        m_Bitangents.push_back(bitangent);
+        m_FaceTangents.push_back(tangent);
+        m_FaceBitangents.push_back(bitangent);
     }
 }
 
@@ -122,6 +178,10 @@ bool Mesh::loadFile(std::string path) {
     // for backface culling and flat shading
     computeFaceNormals();
 
+    // compute per vertex tangent basis vectors
+    computeTangentFace();
+    computeTangentVertex();
+
     return true;
 }
 
@@ -139,6 +199,14 @@ Vector3f& Mesh::getTexture(int index) {
 
 Vector3f& Mesh::getNormal(int index) {
     return m_Normals[index];
+}
+
+Vector3f& Mesh::getTangent(int index) {
+    return m_Tangents[index];
+}
+
+Vector3f& Mesh::getBitangent(int index) {
+    return m_Bitangents[index];
 }
 
 std::vector<Vector3i>& Mesh::getVertexIndices() {

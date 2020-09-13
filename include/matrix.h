@@ -190,6 +190,31 @@ Vector<N, Vector<N, T> > inverse(const Vector<N, Vector<N, T> >& mat) {
     return adj(mat)/d;
 }
 
+template <typename T>
+Vector<3, Vector<3, T> > inverse(const Vector<3, Vector<3, T> >& mat) {
+    Vector<3, Vector<3, T> > res;
+
+    T m0 = mat[1][1] * mat[2][2] - mat[2][1] * mat[1][2];
+    T m1 = mat[0][1] * mat[2][2] - mat[2][1] * mat[0][2];
+    T m2 = mat[0][1] * mat[1][2] - mat[1][1] * mat[0][2];
+    T det = mat[0][0] * m0 - mat[1][0] * m1 + mat[2][0] * m2;
+    if (det == (T) 0) return mat;
+    T inv_det = (T) 1 / det;
+
+    res[0][0] = inv_det * m0;
+    res[0][1] = inv_det * -m1;
+    res[0][2] = inv_det * m2;
+
+    res[1][0]= inv_det * (mat[2][0]* mat[1][2]- mat[1][0]* mat[2][2]);
+    res[1][1]= inv_det * (mat[0][0]* mat[2][2]- mat[2][0]* mat[0][2]);
+    res[1][2]= inv_det * (mat[1][0]* mat[0][2]- mat[0][0]* mat[1][2]);
+
+    res[2][0]= inv_det * (mat[1][0]* mat[2][1]- mat[2][0]* mat[1][1]);
+    res[2][1]= inv_det * (mat[2][0]* mat[0][1]- mat[0][0]* mat[2][1]);
+    res[2][2]= inv_det * (mat[0][0]* mat[1][1]- mat[1][0]* mat[0][1]);
+
+    return res;
+}
 
 // multiplication for 4x4 matrix and 3x1 vector by emdedding w-component as 1 in the vector
 // helpful in numerous transformations involving multiplication of transformation matrices with 3d vectors

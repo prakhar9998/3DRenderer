@@ -17,7 +17,8 @@ private:
     Mesh* m_Mesh;
     Matrix4f m_ModelMatrix;
     std::string m_filepath;
-    Texture* m_Diffuse;
+    Texture *m_Normal;
+    Texture *m_Diffuse;
     
 public:
     Model(std::string path);
@@ -25,8 +26,10 @@ public:
     ~Model();
     void transformModel(Vector3f translate, Vector3f rotate, Vector3f scale);
     void loadDiffuse(std::string filename);
+    void loadNormal(std::string filename);
     const Matrix4f& getModelMatrix() const;
     Texture* getDiffuse();
+    Texture* getNormal();
     Mesh* getMesh();
 };
 
